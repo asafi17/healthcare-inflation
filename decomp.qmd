@@ -78,14 +78,14 @@ To decompose inflation into (i) prices and (ii) weights, we have two options:
 ### Laspeyres-style (base period weights)
 
 $$
-\pi_t^L = \Delta P_t^L = \underbrace{\sum_i w_{i,t-k} \times \Delta p_i}_{\text{Price Component}} + \underbrace{\sum_i \Delta w_i \times p_{i, t}}_{\text{Weight Component}} 
+\Delta P_t^L = \underbrace{\sum_i w_{i,t-k} \times \Delta p_i}_{\text{Price Component}} + \underbrace{\sum_i \Delta w_i \times p_{i, t}}_{\text{Weight Component}}
 $$
 
 
 ### Paasche-style (current period weights)
 
 $$
-\pi_t^P = \Delta P_{t-k,t}^P = \underbrace{\sum_i w_{i,t} \times \Delta p_i}_{\text{Price Component}} + \underbrace{\sum_i \Delta w_i \times p_{i, t-k}}_{\text{Weight Component}} 
+\Delta P_{t-k,t}^P = \underbrace{\sum_i w_{i,t} \times \Delta p_i}_{\text{Price Component}} + \underbrace{\sum_i \Delta w_i \times p_{i, t-k}}_{\text{Weight Component}}
 $$
 
 
@@ -161,7 +161,7 @@ $$
 
 
 $$
-2.4 - 0.5 = \boxed{1.9}
+2.4 + (-0.5) = \boxed{1.9}
 \tag{Total Change}
 $$
 
@@ -511,39 +511,38 @@ ggplot(inflation, aes(x = date, y = 100*pi_t)) +
 ```{r}
 legend = ggpubr::get_palette('jco', 2)
 names(legend) = c('Price Component', 'Weight Component')
-inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |> 
-  # get price component of the laspeyres-style decomp 
-  group_by(payerType) |> 
+inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
+  # get price component of the laspeyres-style decomp
+  group_by(payerType) |>
   mutate(
     price_component_L = lag(wt, 12) * (ppi - lag(ppi, 12)),
     weight_component_L = ppi * (wt - lag(wt, 12))
-  ) |> 
-  ungroup() |> 
-  group_by(date) |> 
+  ) |>
+  ungroup() |>
+  group_by(date) |>
   summarise(
     `Price Component` = sum(price_component_L, na.rm = T),
     `Weight Component` = sum(weight_component_L, na.rm = T)
-  ) |> 
-  ungroup() |> 
-  filter(date > '2000-12-01') |> 
-  pivot_longer(
-    cols = !date, 
-    names_to = 'Component', 
-    values_to = 'Contribution'
-  ) |> 
-  group_by(date) |> 
+  ) |>
+  ungroup() |>
+  filter(date > '2000-12-01') |>
+  # normalize by P_{t-k} to convert from level change to percentage change
+  left_join(inflation, by = 'date') |>
   mutate(
-    check = sum(Contribution, na.rm = T)
-  ) |> 
-  ungroup() |> 
-  left_join(inflation, by = 'date') |> 
-  mutate(pi_t = pi_t*100) |> 
-  ggplot(aes(x = date)) + 
-  geom_col(aes(y = Contribution, color = Component, fill = Component), alpha = .7) + 
-  geom_point(aes(y = pi_t)) + 
-  geom_line(aes(y = pi_t), linetype = 'dashed') + 
-  # geom_ribbon(aes(ymin = 0, ymax = Contribution, fill = Component), alpha = 0.3) +
-  scale_color_manual(values = legend) + 
+    `Price Component`  = `Price Component`  / lag(P_t, 12) * 100,
+    `Weight Component` = `Weight Component` / lag(P_t, 12) * 100,
+    pi_t = pi_t * 100
+  ) |>
+  pivot_longer(
+    cols = c(`Price Component`, `Weight Component`),
+    names_to = 'Component',
+    values_to = 'Contribution'
+  ) |>
+  ggplot(aes(x = date)) +
+  geom_col(aes(y = Contribution, color = Component, fill = Component), alpha = .7) +
+  geom_point(aes(y = pi_t)) +
+  geom_line(aes(y = pi_t), linetype = 'dashed') +
+  scale_color_manual(values = legend) +
   scale_fill_manual(values = legend)
 
 
