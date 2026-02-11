@@ -124,7 +124,7 @@ $$
 \tag{Total Change}
 $$
 
-We can verify this is true by computing inflation directly. We compute he price index in each period and then calculate the difference.
+We can verify this is true by computing inflation directly. We compute the price index in each period and then calculate the difference.
 
 $$
 P_0 = 0.7 * 10 + 0.3*5 = 8.5
@@ -175,7 +175,7 @@ Same change!
 | Weight effect evaluated at | New prices | Old prices |
 | Emphasizes | What inflation *would have been* without behavioral change | What inflation *was experienced* given consumption behavior |
 
-For our project, Laspeyres is useful if we're trying to answer: "How much did hosptial input cost rise, holding service mix constant?" - isolating pure cost pressures. Paasche might be useful if we're asking "Given how hospitals changed their mix, what drove observed spending growth?" - capturing the realized experience.
+For our project, Laspeyres is useful if we're trying to answer: "How much did hospital input cost rise, holding service mix constant?" - isolating pure cost pressures. Paasche might be useful if we're asking "Given how hospitals changed their mix, what drove observed spending growth?" - capturing the realized experience.
 
 ### By-Payer Decomposition
 
@@ -209,12 +209,12 @@ $$
 1.7 + 0.2 = \boxed{1.9}
 $$
 
-## Industry-Based Decomposition of Hospital Inflation
+## Industry-Based Hospital Inflation
 
-### Producer Price Index (PPI) Data
+### Producer Price Index (PPI) 
 
 ```{r read-ppi}
-# read action economics consensus estimate
+# read haver ppi 
 ppi = import_haver(series = c("R62211A2@PPIR", 
                               "R62211A4@PPIR",
                               "R62211A6@PPIR"),eop = F) |> 
@@ -243,13 +243,13 @@ DT::datatable(ppi, caption = 'Producer Price Index (Haver)',
               extensions = 'Buttons',
               options = list(
                 dom = 'Bfrtip', 
-                buttons = c('copy')
+                buttons = c('copy', 'csv', 'excel')
               ))
 
 
 ```
 
-### Industry-Based Expenditure Shares
+### Expenditure Shares
 
 We will read the expenditure share data from the link [CMS NHEA](https://www.cms.gov/files/zip/nhe-tables.zip). Since the PCE Price Index does not publish expenditure shares by payer type, it is necessary to obtain weights from elsewhere. These will be found in the Center for Medicaid and Medicare Services (CMS) National Health Expenditure Accounts (NHEA) tables published online. You can find the relevant table at this link [CMS NHEA](https://www.cms.gov/files/zip/nhe-tables.zip). After downloading, we will read Table 7 which contains the expenditure shares by payer type. From this table, we will create the following variables:
 
@@ -375,7 +375,7 @@ DT::datatable(exp, caption = 'Hospital Care Expenditures (Billions)', rownames =
               extensions = 'Buttons',
               options = list(
                 dom = 'Bfrtip', 
-                buttons = c('copy')
+                buttons = c('copy', 'csv', 'excel')
               ))
 
 rm(list = setdiff(ls(), c('exp', 'ppi')))
@@ -440,7 +440,7 @@ exp_monthly |>
   scale_color_manual(values = ggpubr::get_palette('jco', 3))
 ```
 
-### Compute Overall Hospital Inflation
+### Compute Overall Hospital Inflation 
 
 ```{r}
 # convert ppi to long format 
@@ -487,7 +487,9 @@ ggplot(inflation, aes(x = date, y = 100*pi_t)) +
   )
 
 ```
+## Industry Based Decomposition of Hospital Inflation
 
+::: panel-tabset
 
 ### Laspeyres Decomposition by Weights and Prices
 
@@ -607,7 +609,7 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
 legend = ggpubr::get_palette('jco', 2)
 names(legend) = c('Price Component', 'Weight Component')
 inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
-  # get price component of the laspeyres-style decomp
+  # get price component of the paasche-style decomp
   group_by(payerType) |>
   mutate(
     price_component_P = wt * (ppi - lag(ppi, 12)),
@@ -665,7 +667,7 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
 legend = ggpubr::get_palette('jco', 3)
 names(legend) = c('Other', 'Medicare', 'Medicaid')
 inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
-  # get price component of the laspeyres-style decomp
+  # get price component of the paasche-style decomp
   group_by(payerType) |>
   mutate(
     price_component_P = wt * (ppi - lag(ppi, 12)),
@@ -712,3 +714,535 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
 
 
 ```
+
+:::
+
+
+## Commodity-Based Hospital Inflation
+
+### Producer Price Index (PPI) 
+
+In the commodity-based categorization of the PPI, there are categories for “Hospital outpatient care” and “Hospital inpatient care”, each of which have a subcategory for “General medical and surgical hospitals”. This subcategory for general hospitals has price indexes by payer type, just as detailed for the previous method. The overall categorization looks like:
+
+  I.	Hospital **outpatient** care    
+    a.	General medical and surgical hospitals    
+        i.	Medicare patients   
+        ii.	Medicaid patients   
+        iii.	Private insurance and all other patients    
+    
+  II.	Hospital **inpatient** care     
+      a.	General medical and surgical hospitals      
+        i.	Medicare patients     
+        ii.	Medicaid patients     
+        iii.	Private insurance and all other patients      
+    
+We need to aggregate the indexes of the same payer type to calculate the overall hospital services price index by that payer. 
+
+
+```{r}
+rm(list=ls())
+# read haver ppi 
+ppi = import_haver(series = c("P512101B@PPI", 
+                              "P511104B@PPI",
+                              "P512101C@PPI", 
+                              "P511104C@PPI",
+                              "P512101D@PPI",
+                              "P511104D@PPI"
+                              ),
+                   eop = F) |>
+  rename(ppi_Medicare_in = p512101b,
+         ppi_Medicare_out = p511104b,
+         ppi_Medicaid_in = p512101c, 
+         ppi_Medicaid_out = p511104c, 
+         ppi_Other_in = p512101d, 
+         ppi_Other_out = p511104d)
+
+ppi |> 
+  pivot_longer(
+    cols = !date, 
+    names_to = 'Series', 
+    values_to = 'Value'
+  ) |> 
+  mutate(Series = str_replace_all(Series, 'ppi_', '')) |> 
+  ggplot(aes(x = date, color = Series, y = Value)) + 
+  # geom_point() + 
+  geom_line() + 
+  labs(
+    y = 'Producer Price Index - Commodity Based',
+    x = 'Date'
+  ) + 
+  scale_color_manual(values = ggpubr::get_palette('jco', 6))
+
+DT::datatable(ppi, caption = 'Commodity Based Producer Price Index',
+              rownames = F, 
+              extensions = 'Buttons',
+              options = list(
+                dom = 'Bfrtip', 
+                buttons = c('copy', 'csv', 'excel')
+              ))
+```
+
+
+### Relative Importance Weights  
+
+```{r}
+if (!dir.exists(here('data/bls')))  {
+  dir.create(here('data/bls'))
+}
+
+if (length(list.files(here('data/bls'))) == 0) {
+  # store urls
+  urls = c(
+    'https://www.bls.gov/ppi/tables/wherever-provided-services-and-construction-relative-importance-2025.xlsx',
+    'https://www.bls.gov/ppi/tables/wherever-provided-services-and-construction-relative-importance-2024.xlsx',
+    'https://www.bls.gov/ppi/tables/wherever-provided-services-and-construction-relative-importance-2023.xlsx',
+    'https://www.bls.gov/ppi/tables/wherever-provided-services-and-construction-relative-importance-2022.xlsx',
+    'https://www.bls.gov/ppi/tables/wherever-provided-services-and-construction-relative-importance-2021.xlsx',
+    'https://www.bls.gov/ppi/tables/wherever-provided-services-and-construction-relative-importance-2020.xlsx',
+    'https://www.bls.gov/ppi/tables/wherever-provided-services-and-construction-relative-importance-2019.xlsx',
+    'https://www.bls.gov/ppi/tables/wherever-provided-services-and-construction-relative-importance-2018.xlsx',
+    'https://www.bls.gov/ppi/tables/wherever-provided-services-and-construction-relative-importance-2017.xlsx',
+    'https://www.bls.gov/ppi/tables/wherever-provided-services-and-construction-relative-importance-2016.xlsx',
+    'https://www.bls.gov/ppi/tables/wherever-provided-services-and-construction-relative-importance-2015.xlsx'
+  )
+  
+  # web download 
+  for (i in seq_along(urls)) {
+    download.file(url = urls[i],
+                  destfile = here(paste0(
+                    'data/bls/', 'relimport_', 
+                    str_replace_all(urls[i], 'https://www.bls.gov/ppi/tables/wherever-provided-services-and-construction-relative-importance-', '')
+                  )),
+                  mode = 'wb')
+    
+  }
+}
+
+# store file names
+files = list.files(here('data/bls'), full.names = T)
+
+# store commodity base codes
+codes = c(
+  '5121010111',
+  # medicare inpatient
+  '5121010112',
+  # medicaid inpatient
+  '5121010113',
+  # other inpatient
+  '5111040111',
+  # medicare outpatient
+  '5111040112',
+  # medicaid outpatient
+  '5111040113' # other outpatient
+)
+
+weights = list()
+for (i in seq_along(files)) {
+  # read the first file 
+  temp = read_xlsx(files[i], skip = 3) |>
+    filter(`Commodity code` %in% codes)
+  
+  # check that the file has relative importance weights for each code (6)
+  check = nrow(temp) == 6
+  
+  if (!check) stop('missing expenditure shares -> inspect!')
+  
+  # convert to DT
+  data.table::setDT(temp)
+  
+  # drop previous rel import from 2 years ago 
+  temp = temp[, -3]
+  
+  # store year 
+  temp$year = as.integer(str_replace_all(colnames(temp)[3], 'Relative importance December ', ''))
+  
+  # rename for clarity
+  colnames(temp)[3] = 'relativeImportance'
+  
+  # convert to numeric 
+  temp$relativeImportance = as.numeric(temp$relativeImportance)
+  
+  # normalize the relative imortance by the sum to get share of hospital expenditures 
+  temp$relativeImportance = temp$relativeImportance / sum(temp$relativeImportance)
+
+  # reorder cols 
+  temp = temp |> select(year, everything())
+  
+  # store in list 
+  weights[[i]] = temp
+}
+
+# combine data frames 
+weights = rbindlist(weights) |> 
+  rename(
+    code = `Commodity code`
+  )
+
+# create label data frame to merge 
+label_df = data.frame(
+  code = codes,
+  Series = c(
+    'Medicare_in', 
+    'Medicaid_in', 
+    'Other_in', 
+    'Medicare_out', 
+    'Medicaid_out', 
+    'Other_out'
+  )
+)
+
+# merge in labels 
+weights = left_join(weights, label_df, by = 'code') |> 
+  select(-Index, -code)
+
+
+# plot 
+weights |> 
+  ggplot(aes(x = year, color = Series, y = relativeImportance)) + 
+  # geom_point() + 
+  geom_line() + 
+  labs(
+    y = 'Expenditure Importance - Commodity Based',
+    x = 'Year'
+  ) + 
+  scale_color_manual(values = ggpubr::get_palette('jco', 6))
+
+DT::datatable(weights, caption = 'Hospital Care Expenditures (Relative Importance)', rownames = F, 
+              extensions = 'Buttons',
+              options = list(
+                dom = 'Bfrtip', 
+                buttons = c('copy', 'csv', 'excel')
+              ))
+
+```
+
+As before, we need to convert the annual relative importance weights to the monthly level. 
+
+
+```{r}
+ri_monthly = data.frame(
+  date = seq.Date(as.Date('2014-01-01'), as.Date('2024-12-01'), by = 'month')
+) |> 
+  mutate(
+    year = year(date)
+  ) |> 
+  left_join(weights, by = 'year') |> 
+  select(-year)
+
+# plot 
+ri_monthly |> 
+  ggplot(aes(x = date, color = Series, y = relativeImportance)) + 
+  # geom_point() + 
+  geom_line() + 
+  labs(
+    y = 'Expenditure Importance - Commodity Based',
+    x = 'Month'
+  ) + 
+  scale_color_manual(values = ggpubr::get_palette('jco', 6))
+
+DT::datatable(weights, caption = 'Hospital Care Expenditures (Relative Importance)', rownames = F, 
+              extensions = 'Buttons',
+              options = list(
+                dom = 'Bfrtip', 
+                buttons = c('copy', 'csv', 'excel')
+              ))
+```
+
+
+
+### Compute Overall Hospital Inflation 
+
+```{r}
+# convert ppi to long format 
+ppi_long = ppi |> 
+  pivot_longer(
+    cols = !date, 
+    names_to = 'payerType', 
+    values_to = 'ppi'
+  ) |> 
+  mutate(
+    payerType = str_replace_all(payerType, 'ppi_', '')
+  )
+
+# rename to payer type 
+ri_monthly = ri_monthly |> 
+  rename(
+    payerType = Series
+  )
+
+# combine the data 
+inflation = inner_join(ri_monthly, ppi_long, by = c('date', 'payerType')) |> 
+  # compute overall inflation
+  group_by(date) |> 
+  summarise(
+    P_t = sum(relativeImportance*ppi)
+  ) |> 
+  ungroup() |> 
+  mutate(
+    pi_t = (P_t - lag(P_t, 12)) / lag(P_t, 12)
+  )
+
+ggplot(inflation, aes(x = date, y = 100*pi_t)) +
+  geom_line() +
+  geom_hline(yintercept = 100*mean(inflation$pi_t, na.rm = T), linetype = 'dashed') + 
+  labs(
+    x = 'Month',
+    y = 'Hospital Inflation (% YoY)'
+  )
+
+```
+
+
+## Commodity Based Decomposition of Hospital Inflation
+
+::: panel-tabset
+
+### Laspeyres Decomposition by Weights and Prices
+
+```{r}
+legend = ggpubr::get_palette('jco', 2)
+names(legend) = c('Price Component', 'Weight Component')
+
+
+inner_join(ri_monthly, ppi_long, by = c('date', 'payerType')) |>
+  # get price component of the laspeyres-style decomp
+  group_by(payerType) |>
+  mutate(
+    price_component_L = lag(relativeImportance, 12) * (ppi - lag(ppi, 12)),
+    weight_component_L = ppi * (relativeImportance - lag(relativeImportance, 12))
+  ) |>
+  ungroup() |> 
+  group_by(date) |>
+  summarise(
+    `Price Component` = sum(price_component_L, na.rm = T),
+    `Weight Component` = sum(weight_component_L, na.rm = T)
+  ) |>
+  ungroup() |>
+  # normalize by P_{t-k} to convert from level change to percentage change
+  left_join(inflation, by = 'date') |>
+  mutate(
+    `Price Component`  = `Price Component`  / lag(P_t, 12) * 100,
+    `Weight Component` = `Weight Component` / lag(P_t, 12) * 100,
+    pi_t = pi_t * 100
+  ) |> 
+  pivot_longer(
+    cols = c(`Price Component`, `Weight Component`),
+    names_to = 'Component',
+    values_to = 'Contribution'
+  ) |>
+  # check the inflation total matches pi_t
+  group_by(date) |> 
+  mutate(check = sum(Contribution)) |> 
+  ungroup() |>
+  mutate(
+    flag = ifelse(round(check - pi_t, 5) == 0, F, T)
+  ) |> 
+  filter(date >= '2015-06-01') |>
+  # summary()
+  ggplot(aes(x = date)) +
+  geom_col(aes(y = Contribution, color = Component, fill = Component), alpha = .7) +
+  geom_point(aes(y = pi_t)) +
+  geom_line(aes(y = pi_t), linetype = 'solid') +
+  geom_hline(yintercept = 0, linetype = 'solid') + 
+  scale_color_manual(values = legend) +
+  scale_fill_manual(values = legend) + 
+  labs(
+    x = '', 
+    y = 'Percentage Point'
+  )
+
+
+```
+
+
+### Laspeyres Decomposition by Payer Type
+
+```{r}
+
+legend = ggpubr::get_palette('jco', 3)
+names(legend) = c('Other', 'Medicare', 'Medicaid')
+
+inner_join(ri_monthly, ppi_long, by = c('date', 'payerType')) |>
+  na.omit() |> 
+  # get price component of the laspeyres-style decomp
+  group_by(payerType) |>
+  mutate(
+    price_component_L = lag(relativeImportance, 12) * (ppi - lag(ppi, 12)),
+    weight_component_L = ppi * (relativeImportance - lag(relativeImportance, 12))
+  ) |>
+  ungroup() |> 
+  # store the contribution from each payer type 
+  mutate(
+    contribution_L = price_component_L + weight_component_L
+  ) |> 
+  select(
+    date, payerType, contribution_L
+  ) |> 
+  # collapse the in/out payer types to just one payer type category 
+  mutate(payerType = str_replace_all(payerType, '_in', '')) |> 
+  mutate(payerType = str_replace_all(payerType, '_out', '')) |> 
+  group_by(date, payerType) |> 
+  summarise(
+    contribution_L = sum(contribution_L, na.rm = T)
+  ) |> 
+  ungroup() |> 
+  arrange(payerType, date) |> 
+  # normalize by P_{t-k} to convert from level change to percentage change
+  left_join(inflation, by = 'date') |> 
+  group_by(payerType) |> 
+  mutate(
+    Contribution = contribution_L / lag(P_t, 12) * 100,
+    pi_t = pi_t * 100
+  ) |>
+  ungroup() |> 
+  # check the inflation total matches pi_t
+  group_by(date) |> 
+  mutate(check = sum(Contribution)) |> 
+  ungroup() |> 
+  mutate(
+    flag = ifelse(round(check - pi_t, 5) == 0, F, T)
+  ) |> 
+  # summary()
+  filter(date >= '2015-06-01') |>
+  ggplot(aes(x = date)) +
+  geom_col(aes(y = Contribution, color = payerType, fill = payerType), alpha = .7) +
+  geom_point(aes(y = pi_t)) +
+  geom_line(aes(y = pi_t), linetype = 'solid') +
+  geom_hline(yintercept = 0, linetype = 'solid') + 
+  scale_color_manual(values = legend) +
+  scale_fill_manual(values = legend) + 
+  labs(
+    x = '', 
+    y = 'Percentage Points',
+    fill = 'Payer Type', 
+    color = 'Payer Type'
+  )
+
+
+```
+
+
+
+### Paasche Decomposition by Weights and Prices
+
+```{r}
+legend = ggpubr::get_palette('jco', 2)
+names(legend) = c('Price Component', 'Weight Component')
+inner_join(ri_monthly, ppi_long, by = c('date', 'payerType')) |>
+  # get price component of the paasche-style decomp
+  group_by(payerType) |>
+  mutate(
+    price_component_P = relativeImportance * (ppi - lag(ppi, 12)),
+    weight_component_P = lag(ppi, 12) * (relativeImportance - lag(relativeImportance, 12))
+  ) |>
+  ungroup() |>
+  group_by(date) |>
+  summarise(
+    `Price Component` = sum(price_component_P, na.rm = T),
+    `Weight Component` = sum(weight_component_P, na.rm = T)
+  ) |>
+  ungroup() |>
+  # normalize by P_{t-k} to convert from level change to percentage change
+  left_join(inflation, by = 'date') |>
+  mutate(
+    `Price Component`  = `Price Component`  / lag(P_t, 12) * 100,
+    `Weight Component` = `Weight Component` / lag(P_t, 12) * 100,
+    pi_t = pi_t * 100
+  ) |> 
+  pivot_longer(
+    cols = c(`Price Component`, `Weight Component`),
+    names_to = 'Component',
+    values_to = 'Contribution'
+  ) |>
+  # check the inflation total matches pi_t
+  group_by(date) |> 
+  mutate(check = sum(Contribution)) |> 
+  ungroup() |>
+  mutate(
+    flag = ifelse(round(check - pi_t, 5) == 0, F, T)
+  ) |> 
+  filter(date >= '2015-06-01') |>
+  # summary()
+  ggplot(aes(x = date)) +
+  geom_col(aes(y = Contribution, color = Component, fill = Component), alpha = .7) +
+  geom_point(aes(y = pi_t)) +
+  geom_line(aes(y = pi_t), linetype = 'solid') +
+  geom_hline(yintercept = 0, linetype = 'solid') + 
+  scale_color_manual(values = legend) +
+  scale_fill_manual(values = legend) + 
+  labs(
+    x = '', 
+    y = 'Percentage Point'
+  )
+
+
+```
+
+
+
+
+### Paasche Decomposition by Payer Type
+
+```{r}
+legend = ggpubr::get_palette('jco', 3)
+names(legend) = c('Other', 'Medicare', 'Medicaid')
+inner_join(ri_monthly, ppi_long, by = c('date', 'payerType')) |>
+  na.omit() |> 
+  # get price component of the paasche-style decomp
+  group_by(payerType) |>
+  mutate(
+    price_component_P = relativeImportance * (ppi - lag(ppi, 12)),
+    weight_component_P = lag(ppi, 12) * (relativeImportance - lag(relativeImportance, 12))
+  ) |>
+  ungroup() |> 
+  # store the contribution from each 
+  mutate(
+    contribution_P = price_component_P + weight_component_P
+  ) |> 
+  select(
+    date, payerType, contribution_P
+  ) |> 
+  # collapse the in/out payer types to just one payer type category 
+  mutate(payerType = str_replace_all(payerType, '_in', '')) |> 
+  mutate(payerType = str_replace_all(payerType, '_out', '')) |> 
+  group_by(date, payerType) |> 
+  summarise(
+    contribution_P = sum(contribution_P, na.rm = T)
+  ) |> 
+  ungroup() |> 
+  arrange(payerType, date) |> 
+  # normalize by P_{t-k} to convert from level change to percentage change
+  left_join(inflation, by = 'date') |> 
+  group_by(payerType) |> 
+  mutate(
+    Contribution = contribution_P / lag(P_t, 12) * 100,
+    pi_t = pi_t * 100
+  ) |>
+  ungroup() |> 
+  # check the inflation total matches pi_t
+  group_by(date) |> 
+  mutate(check = sum(Contribution)) |> 
+  ungroup() |> 
+  mutate(
+    flag = ifelse(round(check - pi_t, 5) == 0, F, T)
+  ) |> 
+  filter(date >= '2015-06-01') |>
+  ggplot(aes(x = date)) +
+  geom_col(aes(y = Contribution, color = payerType, fill = payerType), alpha = .7) +
+  geom_point(aes(y = pi_t)) +
+  geom_line(aes(y = pi_t), linetype = 'solid') +
+  geom_hline(yintercept = 0, linetype = 'solid') + 
+  scale_color_manual(values = legend) +
+  scale_fill_manual(values = legend) + 
+  labs(
+    x = '', 
+    y = 'Percentage Points',
+    fill = 'Payer Type', 
+    color = 'Payer Type'
+  )
+
+
+```
+
+:::
+  
