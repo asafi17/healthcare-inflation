@@ -73,7 +73,7 @@ and $k$ is typically 12 indicating the year over year inflation in prices provid
 
 ## Decomposition into weights and prices
 
-To decompose inflation into (i) prices and (ii) weights, we have two options: 
+To decompose inflation into (i) prices and (ii) weights, we have two options:
 
 ### Laspeyres-style (base period weights)
 
@@ -81,19 +81,16 @@ $$
 \Delta P_t^L = \underbrace{\sum_i w_{i,t-k} \times \Delta p_i}_{\text{Price Component}} + \underbrace{\sum_i \Delta w_i \times p_{i, t}}_{\text{Weight Component}}
 $$
 
-
 ### Paasche-style (current period weights)
 
 $$
 \Delta P_{t-k,t}^P = \underbrace{\sum_i w_{i,t} \times \Delta p_i}_{\text{Price Component}} + \underbrace{\sum_i \Delta w_i \times p_{i, t-k}}_{\text{Weight Component}}
 $$
 
-
-| Term          | Definition |
-|---------------|-----------------|
-| $\Delta p_i$  | $p_{i,t} - p_{i, t-k}$     |
-| $\Delta w_i$  | $w_{i,t} - w_{i, t-k}$     |
-
+| Term         | Definition             |
+|--------------|------------------------|
+| $\Delta p_i$ | $p_{i,t} - p_{i, t-k}$ |
+| $\Delta w_i$ | $w_{i,t} - w_{i, t-k}$ |
 
 ## Walkthrough Example
 
@@ -101,35 +98,33 @@ $$
 
 Suppose we have the following healthcare sector with just two services: Medicare and Private
 
-| Type          | Period 0 | Period 1 | 
-|---------------|----------|----------|
-| Medicare Price| 10       | 12       |
-| Private Price | 5        | 8        | 
-| Medicare Weight| 0.7     | 0.6      |
-| Private Weight | 0.3     | 0.4      | 
+| Type            | Period 0 | Period 1 |
+|-----------------|----------|----------|
+| Medicare Price  | 10       | 12       |
+| Private Price   | 5        | 8        |
+| Medicare Weight | 0.7      | 0.6      |
+| Private Weight  | 0.3      | 0.4      |
 
-Notice that both prices rose, but the weights shifted toward private insurance. 
+Notice that both prices rose, but the weights shifted toward private insurance.
 
 ### Laspeyres Decomposition
-
 
 $$
 \underbrace{0.7 * (12-10)}_{\text{Medicare}} + \underbrace{0.3 * (8-5)}_{\text{Private}} = 2.3
 \tag{Price Component}
-$$ 
+$$
 
 $$
 \underbrace{12 * (0.6-0.7)}_{\text{Medicare}} + \underbrace{8 * (0.4-0.3)}_{\text{Private}} = -0.4
 \tag{Weight Component}
-$$ 
-
+$$
 
 $$
 2.3 + -0.4 = \boxed{1.9}
 \tag{Total Change}
 $$
 
-We can verify this is true by computing inflation directly. We compute he price index in each period and then calculate the difference. 
+We can verify this is true by computing inflation directly. We compute he price index in each period and then calculate the difference.
 
 $$
 P_0 = 0.7 * 10 + 0.3*5 = 8.5
@@ -143,11 +138,9 @@ $$
 \Delta P_{0,1} = 10.4 - 8.5 = \boxed{1.9}
 $$
 
-Verified! 
-
+Verified!
 
 ### Paasche Decomposition
-
 
 $$
 \underbrace{0.6 * (12-10)}_{\text{Medicare}} + \underbrace{0.4 * (8-5)}_{\text{Private}} = 2.4
@@ -159,40 +152,37 @@ $$
 \tag{Weight Component}
 $$
 
-
 $$
 2.4 + (-0.5) = \boxed{1.9}
 \tag{Total Change}
 $$
 
-Same change! 
+Same change!
 
 ### Summary
 
-|                 | Laspeyres-style | Paasche-style | Interpretation  |
-|-----------------|-----------------|---------------|-----------------|
-| Price Component | +2.3            | +2.4          | If consumers had kept their baskets fixed each period, the index would have risen by this much |
-| Weight Component| -0.4            | -0.5          | Consumers shifted toward Private insurance. This is the "substitution" effect. This partially offset price increases.  |
-| **Total**       | +1.9            | +1.9          | Total change in the price index between $t-k$ and $t$ |
+|   | Laspeyres-style | Paasche-style | Interpretation |
+|------------------|------------------|------------------|------------------|
+| Price Component | +2.3 | +2.4 | If consumers had kept their baskets fixed each period, the index would have risen by this much |
+| Weight Component | -0.4 | -0.5 | Consumers shifted toward Private insurance. This is the "substitution" effect. This partially offset price increases. |
+| **Total** | +1.9 | +1.9 | Total change in the price index between $t-k$ and $t$ |
 
-### Key Conceptual Differences 
+### Key Conceptual Differences
 
-| Type                        | Laspeyres         | Paasche          |
-|-----------------------------|-------------------|-------------------|
-| Price effect evaluated at   | Old weights       | New weights       |
-| Weight effect evaluated at  | New prices        | Old prices        | 
-| Emphasizes                  | What inflation *would have been* without behavioral change     | What inflation *was experienced* given consumption behavior      |
+| Type | Laspeyres | Paasche |
+|-------------------------------|---------------------|---------------------|
+| Price effect evaluated at | Old weights | New weights |
+| Weight effect evaluated at | New prices | Old prices |
+| Emphasizes | What inflation *would have been* without behavioral change | What inflation *was experienced* given consumption behavior |
 
-For our project, Laspeyres is useful if we're trying to answer: "How much did hosptial input cost rise, holding service mix constant?" - isolating pure cost pressures. Paasche might be useful if we're asking "Given how hospitals changed their mix, what drove observed spending growth?" - capturing the realized experience. 
-
+For our project, Laspeyres is useful if we're trying to answer: "How much did hosptial input cost rise, holding service mix constant?" - isolating pure cost pressures. Paasche might be useful if we're asking "Given how hospitals changed their mix, what drove observed spending growth?" - capturing the realized experience.
 
 ### By-Payer Decomposition
 
-Note, we can also take the work we have done to aggregate by **payer type**. Recall the two expressions we created for the **Laspeyres** Decomposition as an example. 
+Note, we can also take the work we have done to aggregate by **payer type**. Recall the two expressions we created for the **Laspeyres** Decomposition as an example.
 
 ::: callout-note
-**Recall**
-$$
+**Recall** $$
 \underbrace{0.7 * (12-10)}_{\text{Medicare}} + \underbrace{0.3 * (8-5)}_{\text{Private}} = 2.3
 \tag{Price Component}
 $$
@@ -202,7 +192,6 @@ $$
 \tag{Weight Component}
 $$
 :::
-
 
 $$
 \underbrace{0.7 * (12-10)}_{\text{Medicare Price}} + \underbrace{12 * (0.6-0.7)}_{\text{Medicare Weight}} = 0.2
@@ -214,13 +203,11 @@ $$
 \tag{Private Component}
 $$
 
-And finally, we can verify that these also sum to the total inflation. 
-
+And finally, we can verify that these also sum to the total inflation.
 
 $$
 1.7 + 0.2 = \boxed{1.9}
 $$
-
 
 ## Industry-Based Decomposition of Hospital Inflation
 
@@ -231,9 +218,9 @@ $$
 ppi = import_haver(series = c("R62211A2@PPIR", 
                               "R62211A4@PPIR",
                               "R62211A6@PPIR"),eop = F) |> 
-  rename(ppi_medicare = r62211a2,
-         ppi_medicaid = r62211a4,
-         ppi_other = r62211a6) 
+  rename(ppi_Medicare = r62211a2,
+         ppi_Medicaid = r62211a4,
+         ppi_Other = r62211a6) 
 
 ppi |> 
   pivot_longer(
@@ -262,18 +249,15 @@ DT::datatable(ppi, caption = 'Producer Price Index (Haver)',
 
 ```
 
+### Industry-Based Expenditure Shares
 
-### Industry-Based Expenditure Shares 
+We will read the expenditure share data from the link [CMS NHEA](https://www.cms.gov/files/zip/nhe-tables.zip). Since the PCE Price Index does not publish expenditure shares by payer type, it is necessary to obtain weights from elsewhere. These will be found in the Center for Medicaid and Medicare Services (CMS) National Health Expenditure Accounts (NHEA) tables published online. You can find the relevant table at this link [CMS NHEA](https://www.cms.gov/files/zip/nhe-tables.zip). After downloading, we will read Table 7 which contains the expenditure shares by payer type. From this table, we will create the following variables:
 
-We will read the expenditure share data from the link [CMS NHEA](https://www.cms.gov/files/zip/nhe-tables.zip). 
-Since the PCE Price Index does not publish expenditure shares by payer type, it is necessary to obtain weights from elsewhere. These will be found in the Center for Medicaid and Medicare Services (CMS) National Health Expenditure Accounts (NHEA) tables published online. You can find the relevant table at this link [CMS NHEA](https://www.cms.gov/files/zip/nhe-tables.zip). After downloading, we will read Table 7 which contains the expenditure shares by payer type. From this table, we will create the following variables: 
+-   `Medicaid` = G5:G32\
+-   `Medicare` = F5:F32\
+-   `Other` = C5:C32 + E5:E32 + H5:H32 + I5:I32 = Out of Pocket Payers + Private Health Insurance + Other Health Insurance + Other Third Party Payers
 
-- `medicaid` = G5:G32   
-- `medicare` = F5:F32   
-- `other` = C5:C32 + E5:E32 + H5:H32 + I5:I32 = Out of Pocket Payers + Private Health Insurance + Other Health Insurance + Other Third Party Payers   
-
-We create the `other` variable to match the "Private and all other patients" designation of the data series with Haver Code `R62211A6.` We verify that the `total` column (B5:B32) is the sum total of these 3 categories (up to rounding error). We re-calculate this `total` value by summing the 3 variables above to ensure that the expenditure shares of each payer-type sum to 1. 
-
+We create the `Other` variable to match the "Private and all other patients" designation of the data series with Haver Code `R62211A6.` We verify that the `total` column (B5:B32) is the sum total of these 3 categories (up to rounding error). We re-calculate this `total` value by summing the 3 variables above to ensure that the expenditure shares of each payer-type sum to 1.
 
 ```{r read-industry-expenditures}
 # check to see if the directory exists
@@ -355,15 +339,15 @@ year = read_xlsx(here('data/cms/nhe-tables/Table 07 Hospital Care Expenditures.x
 exp = data.frame(
   year = year, 
   total = total, 
-  medicare = medicare, 
-  medicaid = medicaid, 
-  other = other
+  Medicare = medicare, 
+  Medicaid = medicaid, 
+  Other = other
 ) |> 
   mutate(
     across(where(is.numeric), ~ round(., 1))
   ) |> 
   mutate(
-    total = medicare + medicaid + other
+    total = Medicare + Medicaid + Other
   ) |> 
   filter(year >= 2000)
 
@@ -371,7 +355,7 @@ exp = data.frame(
 
 # plot 
 exp |> 
-  # select(-total) |> 
+  select(-total) |>
   pivot_longer(
     cols = !year, 
     names_to = 'Series', 
@@ -397,7 +381,7 @@ DT::datatable(exp, caption = 'Hospital Care Expenditures (Billions)', rownames =
 rm(list = setdiff(ls(), c('exp', 'ppi')))
 ```
 
-The expenditure data are annual here. We will change this to monthly data by creating a sequence of monthly dates from January 2000 to December 2024, storing the `year` of each month, and merging the annual expenditure data using this `year` variable. 
+The expenditure data are annual here. We will change this to monthly data by creating a sequence of monthly dates from January 2000 to December 2024, storing the `year` of each month, and merging the annual expenditure data using this `year` variable.
 
 ```{r}
 exp_monthly = data.frame(
@@ -426,14 +410,14 @@ exp_monthly |>
   scale_color_manual(values = ggpubr::get_palette('jco', 3))
 ```
 
-Next, we compute the expenditure shares of each category. 
+Next, we compute the expenditure shares of each category.
 
 ```{r}
 exp_monthly = exp_monthly |> 
   mutate(
-    shr_medicare = medicare / total, 
-    shr_medicaid = medicaid/total, 
-    shr_other = other / total
+    shr_Medicare = Medicare / total, 
+    shr_Medicaid = Medicaid/total, 
+    shr_Other = Other / total
   )
 
 exp_monthly |> 
@@ -456,8 +440,7 @@ exp_monthly |>
   scale_color_manual(values = ggpubr::get_palette('jco', 3))
 ```
 
-
-### Compute Overall Hospital Inflation 
+### Compute Overall Hospital Inflation
 
 ```{r}
 # convert ppi to long format 
@@ -525,25 +508,207 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
     `Weight Component` = sum(weight_component_L, na.rm = T)
   ) |>
   ungroup() |>
-  filter(date > '2000-12-01') |>
   # normalize by P_{t-k} to convert from level change to percentage change
   left_join(inflation, by = 'date') |>
   mutate(
     `Price Component`  = `Price Component`  / lag(P_t, 12) * 100,
     `Weight Component` = `Weight Component` / lag(P_t, 12) * 100,
     pi_t = pi_t * 100
-  ) |>
+  ) |> 
   pivot_longer(
     cols = c(`Price Component`, `Weight Component`),
     names_to = 'Component',
     values_to = 'Contribution'
   ) |>
+  # check the inflation total matches pi_t
+  group_by(date) |> 
+  mutate(check = sum(Contribution)) |> 
+  ungroup() |>
+  mutate(
+    flag = ifelse(round(check - pi_t, 5) == 0, F, T)
+  ) |> 
+  filter(date >= '2001-01-01') |> 
+  # summary()
   ggplot(aes(x = date)) +
   geom_col(aes(y = Contribution, color = Component, fill = Component), alpha = .7) +
   geom_point(aes(y = pi_t)) +
-  geom_line(aes(y = pi_t), linetype = 'dashed') +
+  geom_line(aes(y = pi_t), linetype = 'solid') +
+  geom_hline(yintercept = 0, linetype = 'solid') + 
   scale_color_manual(values = legend) +
-  scale_fill_manual(values = legend)
+  scale_fill_manual(values = legend) + 
+  labs(
+    x = '', 
+    y = 'Percentage Point'
+  )
+
+
+```
+
+
+### Laspeyres Decomposition by Payer Type
+
+```{r}
+legend = ggpubr::get_palette('jco', 3)
+names(legend) = c('Other', 'Medicare', 'Medicaid')
+inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
+  # get price component of the laspeyres-style decomp
+  group_by(payerType) |>
+  mutate(
+    price_component_L = lag(wt, 12) * (ppi - lag(ppi, 12)),
+    weight_component_L = ppi * (wt - lag(wt, 12))
+  ) |>
+  ungroup() |> 
+  # store the contribution from each 
+  mutate(
+    contribution_L = price_component_L + weight_component_L
+  ) |> 
+  select(
+    date, payerType, contribution_L
+  ) |> 
+    arrange(payerType, date) |> 
+  # normalize by P_{t-k} to convert from level change to percentage change
+  left_join(inflation, by = 'date') |> 
+  group_by(payerType) |> 
+  mutate(
+    Contribution = contribution_L / lag(P_t, 12) * 100,
+    pi_t = pi_t * 100
+  ) |>
+  ungroup() |> 
+  # check the inflation total matches pi_t
+  group_by(date) |> 
+  mutate(check = sum(Contribution)) |> 
+  ungroup() |> 
+  mutate(
+    flag = ifelse(round(check - pi_t, 5) == 0, F, T)
+  ) |> 
+  filter(date >= '2001-01-01') |>
+  ggplot(aes(x = date)) +
+  geom_col(aes(y = Contribution, color = payerType, fill = payerType), alpha = .7) +
+  geom_point(aes(y = pi_t)) +
+  geom_line(aes(y = pi_t), linetype = 'solid') +
+  geom_hline(yintercept = 0, linetype = 'solid') + 
+  scale_color_manual(values = legend) +
+  scale_fill_manual(values = legend) + 
+  labs(
+    x = '', 
+    y = 'Percentage Points',
+    fill = 'Payer Type', 
+    color = 'Payer Type'
+  )
+
+
+```
+
+
+
+### Paasche Decomposition by Weights and Prices
+
+```{r}
+legend = ggpubr::get_palette('jco', 2)
+names(legend) = c('Price Component', 'Weight Component')
+inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
+  # get price component of the laspeyres-style decomp
+  group_by(payerType) |>
+  mutate(
+    price_component_P = wt * (ppi - lag(ppi, 12)),
+    weight_component_P = lag(ppi, 12) * (wt - lag(wt, 12))
+  ) |>
+  ungroup() |>
+  group_by(date) |>
+  summarise(
+    `Price Component` = sum(price_component_P, na.rm = T),
+    `Weight Component` = sum(weight_component_P, na.rm = T)
+  ) |>
+  ungroup() |>
+  # normalize by P_{t-k} to convert from level change to percentage change
+  left_join(inflation, by = 'date') |>
+  mutate(
+    `Price Component`  = `Price Component`  / lag(P_t, 12) * 100,
+    `Weight Component` = `Weight Component` / lag(P_t, 12) * 100,
+    pi_t = pi_t * 100
+  ) |> 
+  pivot_longer(
+    cols = c(`Price Component`, `Weight Component`),
+    names_to = 'Component',
+    values_to = 'Contribution'
+  ) |>
+  # check the inflation total matches pi_t
+  group_by(date) |> 
+  mutate(check = sum(Contribution)) |> 
+  ungroup() |>
+  mutate(
+    flag = ifelse(round(check - pi_t, 5) == 0, F, T)
+  ) |> 
+  filter(date >= '2001-01-01') |> 
+  # summary()
+  ggplot(aes(x = date)) +
+  geom_col(aes(y = Contribution, color = Component, fill = Component), alpha = .7) +
+  geom_point(aes(y = pi_t)) +
+  geom_line(aes(y = pi_t), linetype = 'solid') +
+  geom_hline(yintercept = 0, linetype = 'solid') + 
+  scale_color_manual(values = legend) +
+  scale_fill_manual(values = legend) + 
+  labs(
+    x = '', 
+    y = 'Percentage Point'
+  )
+
+
+```
+
+
+
+
+### Paasche Decomposition by Payer Type
+
+```{r}
+legend = ggpubr::get_palette('jco', 3)
+names(legend) = c('Other', 'Medicare', 'Medicaid')
+inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
+  # get price component of the laspeyres-style decomp
+  group_by(payerType) |>
+  mutate(
+    price_component_P = wt * (ppi - lag(ppi, 12)),
+    weight_component_P = lag(ppi, 12) * (wt - lag(wt, 12))
+  ) |>
+  ungroup() |> 
+  # store the contribution from each 
+  mutate(
+    contribution_P = price_component_P + weight_component_P
+  ) |> 
+  select(
+    date, payerType, contribution_P
+  ) |> 
+    arrange(payerType, date) |> 
+  # normalize by P_{t-k} to convert from level change to percentage change
+  left_join(inflation, by = 'date') |> 
+  group_by(payerType) |> 
+  mutate(
+    Contribution = contribution_P / lag(P_t, 12) * 100,
+    pi_t = pi_t * 100
+  ) |>
+  ungroup() |> 
+  # check the inflation total matches pi_t
+  group_by(date) |> 
+  mutate(check = sum(Contribution)) |> 
+  ungroup() |> 
+  mutate(
+    flag = ifelse(round(check - pi_t, 5) == 0, F, T)
+  ) |> 
+  filter(date >= '2001-01-01') |>
+  ggplot(aes(x = date)) +
+  geom_col(aes(y = Contribution, color = payerType, fill = payerType), alpha = .7) +
+  geom_point(aes(y = pi_t)) +
+  geom_line(aes(y = pi_t), linetype = 'solid') +
+  geom_hline(yintercept = 0, linetype = 'solid') + 
+  scale_color_manual(values = legend) +
+  scale_fill_manual(values = legend) + 
+  labs(
+    x = '', 
+    y = 'Percentage Points',
+    fill = 'Payer Type', 
+    color = 'Payer Type'
+  )
 
 
 ```
