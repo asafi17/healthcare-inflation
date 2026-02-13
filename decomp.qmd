@@ -231,7 +231,7 @@ ppi |>
   mutate(Series = str_replace_all(Series, 'ppi_', '')) |> 
   ggplot(aes(x = date, color = Series, y = Value)) + 
   # geom_point() + 
-  geom_line() + 
+  geom_line(linewidth = 1.05) + 
   labs(
     y = 'Producer Price Index - Industry Based',
     x = 'Date'
@@ -246,6 +246,40 @@ DT::datatable(ppi, caption = 'Producer Price Index (Haver)',
                 buttons = c('copy', 'csv', 'excel')
               ))
 
+
+# store ppi yearly by taking average 
+ppi_yearly = ppi |> 
+  mutate(
+    year = year(date)
+  ) |> 
+  group_by(year) |> 
+  summarise(
+    ppi_Medicare = mean(ppi_Medicare, na.rm = T), 
+    ppi_Medicaid = mean(ppi_Medicaid, na.rm = T), 
+    ppi_Other = mean(ppi_Other, na.rm = T)
+  )|> 
+  ungroup()
+
+ppi_yearly |> 
+  rename(`ppi_Private/Other` = ppi_Other) |> 
+  pivot_longer(
+    cols = !year, 
+    names_to = 'Series', 
+    values_to = 'Value'
+  ) |> 
+  mutate(Series = str_replace_all(Series, 'ppi_', '')) |> 
+  ggplot(aes(x = year, color = Series, y = Value)) + 
+  # geom_point() + 
+  geom_line(linewidth = 1.05) + 
+  labs(
+    y = 'Producer Price Index - Industry Based',
+    x = 'Year'
+  ) +
+  scale_color_manual(values = ggpubr::get_palette('jco', 3)) + 
+    scale_x_continuous(
+    breaks = seq(min(ppi_yearly$year), 
+                 max(ppi_yearly$year), 
+                 by = 2))
 
 ```
 
@@ -355,6 +389,7 @@ exp = data.frame(
 
 # plot 
 exp |> 
+  rename(`Private/Other` = Other) |> 
   select(-total) |>
   pivot_longer(
     cols = !year, 
@@ -362,14 +397,18 @@ exp |>
     values_to = 'Value'
   ) |> 
   ggplot(aes(x = year, color = Series, y = Value)) + 
-  # geom_point() + 
-  geom_line() + 
+  # geom_point(size = 3) +
+  geom_line(linewidth = 1.05) + 
   labs(
     y = 'Hospital Care Expenditures - Industry Based',
     x = 'Year',
     subtitle = 'Billions $'
   ) + 
-  scale_color_manual(values = ggpubr::get_palette('jco', 4))
+  scale_color_manual(values = ggpubr::get_palette('jco', 4)) + 
+  scale_x_continuous(
+    breaks = seq(min(exp$year), 
+                 max(exp$year), 
+                 by = 2))
 
 DT::datatable(exp, caption = 'Hospital Care Expenditures (Billions)', rownames = F, 
               extensions = 'Buttons',
@@ -378,7 +417,7 @@ DT::datatable(exp, caption = 'Hospital Care Expenditures (Billions)', rownames =
                 buttons = c('copy', 'csv', 'excel')
               ))
 
-rm(list = setdiff(ls(), c('exp', 'ppi')))
+rm(list = setdiff(ls(), c('exp', 'ppi', 'ppi_yearly')))
 ```
 
 The expenditure data are annual here. We will change this to monthly data by creating a sequence of monthly dates from January 2000 to December 2024, storing the `year` of each month, and merging the annual expenditure data using this `year` variable.
@@ -392,7 +431,8 @@ exp_monthly = data.frame(
   ) |> 
   left_join(exp, by = 'year')
 
-exp_monthly |> 
+exp_monthly |>
+  rename(`Private/Other` = Other) |> 
   select(-total, -year) |> 
   pivot_longer(
     cols = !date, 
@@ -400,14 +440,18 @@ exp_monthly |>
     values_to = 'Value'
   ) |> 
   ggplot(aes(x = date, color = Series, y = Value)) + 
-  # geom_point() + 
-  geom_line() + 
+  geom_line(linewidth = 1.05) + 
   labs(
     y = 'Hospital Care Expenditures - Industry Based',
     x = 'Month',
     subtitle = 'Billions $'
   ) + 
-  scale_color_manual(values = ggpubr::get_palette('jco', 3))
+  scale_color_manual(values = ggpubr::get_palette('jco', 3)) + 
+  scale_x_date(
+    breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
+    date_labels = "%Y"
+  ) 
+
 ```
 
 Next, we compute the expenditure shares of each category.
@@ -421,6 +465,7 @@ exp_monthly = exp_monthly |>
   )
 
 exp_monthly |> 
+  rename(`shr_Private/Other` = shr_Other) |> 
   select(date, contains('shr')) |> 
   pivot_longer(
     cols = !date, 
@@ -432,15 +477,19 @@ exp_monthly |>
   ) |> 
   ggplot(aes(x = date, color = Series, y = Value)) + 
   # geom_point() + 
-  geom_line() + 
+  geom_line(linewidth = 1.05) + 
   labs(
     y = 'Hospital Share Expenditures - Industry Based',
     x = 'Month'
   ) + 
-  scale_color_manual(values = ggpubr::get_palette('jco', 3))
+  scale_color_manual(values = ggpubr::get_palette('jco', 3)) + 
+  scale_x_date(
+    breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
+    date_labels = "%Y"
+  ) 
 ```
 
-### Compute Overall Hospital Inflation 
+### Compute Overall Hospital Inflation (Monthly)
 
 ```{r}
 # convert ppi to long format 
@@ -475,19 +524,120 @@ inflation = inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) 
   ) |> 
   ungroup() |> 
   mutate(
-    pi_t = (P_t - lag(P_t, 12)) / lag(P_t, 12)
+    pi_t = 100*(P_t - lag(P_t, 12)) / lag(P_t, 12)
   )
 
-ggplot(inflation, aes(x = date, y = 100*pi_t)) +
-  geom_line() +
-  geom_hline(yintercept = 100*mean(inflation$pi_t, na.rm = T), linetype = 'dashed') + 
+fwrite(inflation, here('data/analysis/industry_based_inflation.csv'))
+
+# read in overall healthcare services inflation
+pce = import_haver(
+  series = c('jcxfebm@USECON', 'jcsdm@usna'), eop = F
+) |> 
+  rename(
+    `Core PCE` = jcxfebm, 
+    `Healthcare` = jcsdm
+  ) |> 
+  mutate(
+    `Core PCE` = 100*(`Core PCE` - lag(`Core PCE`, 12)) / lag(`Core PCE`, 12),
+    `Healthcare` = 100*(Healthcare - lag(Healthcare, 12)) / lag(Healthcare, 12)
+  )
+
+inflation |> 
+  left_join(pce, by = 'date')  |> 
+  rename(Hospital = pi_t) |> 
+  select(date, Hospital, `Core PCE`, Healthcare) |> 
+  na.omit() |> 
+  pivot_longer(
+    cols = !date, 
+    names_to = 'Type', 
+    values_to = 'Inflation'
+  ) |> 
+  ggplot(aes(x = date, y = Inflation, color = Type)) +
+  geom_line(linewidth = 1.05) +
+  # geom_hline(yintercept = mean(inflation$pi_t, na.rm = T), linetype = 'dashed') + 
   labs(
     x = 'Month',
-    y = 'Hospital Inflation (% YoY)'
-  )
+    y = 'Inflation (% YoY)'
+  ) + 
+    scale_x_date(
+    breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
+    date_labels = "%Y"
+  ) + 
+    scale_color_manual(values = ggpubr::get_palette('jco', 3)) 
+
 
 ```
-## Industry Based Decomposition of Hospital Inflation
+
+### Compute Overall Hospital Inflation (Annual)
+
+```{r}
+# store annual shares and pivot longer
+exp_year_long = exp |> 
+  mutate(shr_Medicare = Medicare / total, 
+         shr_Medicaid = Medicaid / total, 
+         `shr_Private/Other` = Other / total) |> 
+  select(year, contains('shr'))  |> 
+  pivot_longer(
+    cols = !year, 
+    names_to = 'payerType', 
+    values_to = 'wt'
+  ) |> 
+  mutate(
+    payerType = str_replace_all(payerType, 'shr_', '')
+  ) |> 
+  mutate(
+    year = as.integer(year)
+  )
+
+# store annual ppi long 
+ppi_yearly_long = ppi_yearly |> 
+  rename(`ppi_Private/Other` = ppi_Other) |> 
+  pivot_longer(
+    cols = !year, 
+    names_to = 'payerType', 
+    values_to = 'ppi'
+  ) |> 
+  mutate(
+    payerType = str_replace_all(payerType, 'ppi_', '')
+  )
+
+# combine the data 
+inflation_annual = inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |> 
+  # compute overall inflation
+  group_by(year) |> 
+  summarise(
+    P_t = sum(wt*ppi)
+  ) |> 
+  ungroup() |> 
+  mutate(
+    pi_t = 100*(P_t - lag(P_t, 1)) / lag(P_t, 1)
+  )
+
+fwrite(inflation_annual, here('data/analysis/industry_based_inflation_annual.csv'))
+
+
+
+inflation_annual |>
+  # left_join(pce, by = 'date')  |>
+  rename(Hospital = pi_t) |>
+  # select(date, Hospital, `Core PCE`, Healthcare) |>
+  select(year, Hospital) |>
+  na.omit() |>
+  # pivot_longer(cols = !year,
+  #              names_to = 'Type',
+  #              values_to = 'Inflation') |>
+  # ggplot(aes(x = date, y = Inflation, color = Type)) +
+  ggplot(aes(x = year, y = Hospital)) +
+  geom_line(linewidth = 1.05) +
+  # geom_hline(yintercept = mean(inflation$pi_t, na.rm = T), linetype = 'dashed') +
+  labs(x = 'Year', y = 'Inflation (% YoY)') +
+  scale_x_continuous(breaks = seq(min(exp_year_long$year), max(exp_year_long$year), by = 2))
+# scale_color_manual(values = ggpubr::get_palette('jco', 3))
+
+```
+
+
+## Industry Based Decomposition of Hospital Inflation (Monthly)
 
 ::: panel-tabset
 
@@ -515,7 +665,7 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
   mutate(
     `Price Component`  = `Price Component`  / lag(P_t, 12) * 100,
     `Weight Component` = `Weight Component` / lag(P_t, 12) * 100,
-    pi_t = pi_t * 100
+    pi_t = pi_t
   ) |> 
   pivot_longer(
     cols = c(`Price Component`, `Weight Component`),
@@ -551,8 +701,11 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
 
 ```{r}
 legend = ggpubr::get_palette('jco', 3)
-names(legend) = c('Other', 'Medicare', 'Medicaid')
+names(legend) = c('Private/Other', 'Medicare', 'Medicaid')
 inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
+  mutate(
+    payerType = ifelse(payerType == 'Other', 'Private/Other', payerType)
+  ) |> 
   # get price component of the laspeyres-style decomp
   group_by(payerType) |>
   mutate(
@@ -573,7 +726,7 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
   group_by(payerType) |> 
   mutate(
     Contribution = contribution_L / lag(P_t, 12) * 100,
-    pi_t = pi_t * 100
+    pi_t = pi_t
   ) |>
   ungroup() |> 
   # check the inflation total matches pi_t
@@ -627,7 +780,7 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
   mutate(
     `Price Component`  = `Price Component`  / lag(P_t, 12) * 100,
     `Weight Component` = `Weight Component` / lag(P_t, 12) * 100,
-    pi_t = pi_t * 100
+    pi_t = pi_t 
   ) |> 
   pivot_longer(
     cols = c(`Price Component`, `Weight Component`),
@@ -665,8 +818,11 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
 
 ```{r}
 legend = ggpubr::get_palette('jco', 3)
-names(legend) = c('Other', 'Medicare', 'Medicaid')
+names(legend) = c('Private/Other', 'Medicare', 'Medicaid')
 inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
+  mutate(
+    payerType = ifelse(payerType == 'Other', 'Private/Other', payerType)
+  ) |> 
   # get price component of the paasche-style decomp
   group_by(payerType) |>
   mutate(
@@ -687,7 +843,7 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
   group_by(payerType) |> 
   mutate(
     Contribution = contribution_P / lag(P_t, 12) * 100,
-    pi_t = pi_t * 100
+    pi_t = pi_t 
   ) |>
   ungroup() |> 
   # check the inflation total matches pi_t
@@ -699,6 +855,238 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
   ) |> 
   filter(date >= '2001-01-01') |>
   ggplot(aes(x = date)) +
+  geom_col(aes(y = Contribution, color = payerType, fill = payerType), alpha = .7) +
+  geom_point(aes(y = pi_t)) +
+  geom_line(aes(y = pi_t), linetype = 'solid') +
+  geom_hline(yintercept = 0, linetype = 'solid') + 
+  scale_color_manual(values = legend) +
+  scale_fill_manual(values = legend) + 
+  labs(
+    x = '', 
+    y = 'Percentage Points',
+    fill = 'Payer Type', 
+    color = 'Payer Type'
+  )
+
+
+```
+
+:::
+
+
+## Industry Based Decomposition of Hospital Inflation (Annual)
+
+::: panel-tabset
+
+### Laspeyres Decomposition by Weights and Prices
+
+```{r}
+
+legend = ggpubr::get_palette('jco', 2)
+names(legend) = c('Price Component', 'Weight Component')
+inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
+  # get price component of the laspeyres-style decomp
+  group_by(payerType) |>
+  mutate(
+    price_component_L = lag(wt, 1) * (ppi - lag(ppi, 1)),
+    weight_component_L = ppi * (wt - lag(wt, 1))
+  ) |>
+  ungroup() |>
+  group_by(year) |>
+  summarise(
+    `Price Component` = sum(price_component_L, na.rm = T),
+    `Weight Component` = sum(weight_component_L, na.rm = T)
+  ) |>
+  ungroup() |>
+  # normalize by P_{t-k} to convert from level change to percentage change
+  left_join(inflation_annual, by = 'year') |>
+  mutate(
+    `Price Component`  = `Price Component`  / lag(P_t, 1) * 100,
+    `Weight Component` = `Weight Component` / lag(P_t, 1) * 100,
+    pi_t = pi_t
+  ) |> 
+  pivot_longer(
+    cols = c(`Price Component`, `Weight Component`),
+    names_to = 'Component',
+    values_to = 'Contribution'
+  ) |>
+  # check the inflation total matches pi_t
+  group_by(year) |> 
+  mutate(check = sum(Contribution)) |> 
+  ungroup() |>
+  mutate(
+    flag = ifelse(round(check - pi_t, 5) == 0, F, T)
+  ) |>
+  filter(year >= 2001) |>
+  # summary()
+  ggplot(aes(x = year)) +
+  geom_col(aes(y = Contribution, color = Component, fill = Component), alpha = .7) +
+  geom_point(aes(y = pi_t)) +
+  geom_line(aes(y = pi_t), linetype = 'solid') +
+  geom_hline(yintercept = 0, linetype = 'solid') + 
+  scale_color_manual(values = legend) +
+  scale_fill_manual(values = legend) + 
+  labs(
+    x = '', 
+    y = 'Percentage Point'
+  )
+
+
+```
+
+
+### Laspeyres Decomposition by Payer Type
+
+```{r}
+legend = ggpubr::get_palette('jco', 3)
+names(legend) = c('Private/Other', 'Medicare', 'Medicaid')
+inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
+  # get price component of the laspeyres-style decomp
+  group_by(payerType) |>
+  mutate(
+    price_component_L = lag(wt, 1) * (ppi - lag(ppi, 1)),
+    weight_component_L = ppi * (wt - lag(wt, 1))
+  ) |>
+  ungroup() |> 
+  # store the contribution from each 
+  mutate(
+    contribution_L = price_component_L + weight_component_L
+  ) |> 
+  select(
+    year, payerType, contribution_L
+  ) |> 
+    arrange(payerType, year) |> 
+  # normalize by P_{t-k} to convert from level change to percentage change
+  left_join(inflation_annual, by = 'year') |> 
+  group_by(payerType) |> 
+  mutate(
+    Contribution = contribution_L / lag(P_t, 1) * 100,
+    pi_t = pi_t
+  ) |>
+  ungroup() |> 
+  # check the inflation total matches pi_t
+  group_by(year) |> 
+  mutate(check = sum(Contribution)) |> 
+  ungroup() |> 
+  mutate(
+    flag = ifelse(round(check - pi_t, 5) == 0, F, T)
+  ) |> 
+  # filter(year >= 2001) |>
+  ggplot(aes(x = year)) +
+  geom_col(aes(y = Contribution, color = payerType, fill = payerType), alpha = .7) +
+  geom_point(aes(y = pi_t)) +
+  geom_line(aes(y = pi_t), linetype = 'solid') +
+  geom_hline(yintercept = 0, linetype = 'solid') + 
+  scale_color_manual(values = legend) +
+  scale_fill_manual(values = legend) + 
+  labs(
+    x = '', 
+    y = 'Percentage Points',
+    fill = 'Payer Type', 
+    color = 'Payer Type'
+  )
+
+
+```
+
+
+
+### Paasche Decomposition by Weights and Prices
+
+```{r}
+legend = ggpubr::get_palette('jco', 2)
+names(legend) = c('Price Component', 'Weight Component')
+inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
+  # get price component of the paasche-style decomp
+  group_by(payerType) |>
+  mutate(
+    price_component_P = wt * (ppi - lag(ppi, 1)),
+    weight_component_P = lag(ppi, 1) * (wt - lag(wt, 1))
+  ) |>
+  ungroup() |>
+  group_by(year) |>
+  summarise(
+    `Price Component` = sum(price_component_P, na.rm = T),
+    `Weight Component` = sum(weight_component_P, na.rm = T)
+  ) |>
+  ungroup() |>
+  # normalize by P_{t-k} to convert from level change to percentage change
+  left_join(inflation_annual, by = 'year') |>
+  mutate(
+    `Price Component`  = `Price Component`  / lag(P_t, 1) * 100,
+    `Weight Component` = `Weight Component` / lag(P_t, 1) * 100,
+    pi_t = pi_t
+  ) |> 
+  pivot_longer(
+    cols = c(`Price Component`, `Weight Component`),
+    names_to = 'Component',
+    values_to = 'Contribution'
+  ) |>
+  # check the inflation total matches pi_t
+  group_by(year) |> 
+  mutate(check = sum(Contribution)) |> 
+  ungroup() |>
+  mutate(
+    flag = ifelse(round(check - pi_t, 5) == 0, F, T)
+  ) |> 
+  filter(year >= 2001) |> 
+  # summary()
+  ggplot(aes(x = year)) +
+  geom_col(aes(y = Contribution, color = Component, fill = Component), alpha = .7) +
+  geom_point(aes(y = pi_t)) +
+  geom_line(aes(y = pi_t), linetype = 'solid') +
+  geom_hline(yintercept = 0, linetype = 'solid') + 
+  scale_color_manual(values = legend) +
+  scale_fill_manual(values = legend) + 
+  labs(
+    x = '', 
+    y = 'Percentage Point'
+  )
+
+
+```
+
+
+
+
+### Paasche Decomposition by Payer Type
+
+```{r}
+legend = ggpubr::get_palette('jco', 3)
+names(legend) = c('Private/Other', 'Medicare', 'Medicaid')
+inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
+  # get price component of the paasche-style decomp
+  group_by(payerType) |>
+  mutate(
+    price_component_P = wt * (ppi - lag(ppi, 1)),
+    weight_component_P = lag(ppi, 1) * (wt - lag(wt, 1))
+  ) |>
+  ungroup() |> 
+  # store the contribution from each 
+  mutate(
+    contribution_P = price_component_P + weight_component_P
+  ) |> 
+  select(
+    year, payerType, contribution_P
+  ) |> 
+    arrange(payerType, year) |> 
+  # normalize by P_{t-k} to convert from level change to percentage change
+  left_join(inflation_annual, by = 'year') |> 
+  group_by(payerType) |> 
+  mutate(
+    Contribution = contribution_P / lag(P_t, 1) * 100,
+    pi_t = pi_t
+  ) |>
+  ungroup() |> 
+  # check the inflation total matches pi_t
+  group_by(year) |> 
+  mutate(check = sum(Contribution)) |> 
+  ungroup() |> 
+  mutate(
+    flag = ifelse(round(check - pi_t, 5) == 0, F, T)
+  ) |> 
+  filter(year >= 2001) |>
+  ggplot(aes(x = year)) +
   geom_col(aes(y = Contribution, color = payerType, fill = payerType), alpha = .7) +
   geom_point(aes(y = pi_t)) +
   geom_line(aes(y = pi_t), linetype = 'solid') +
@@ -946,6 +1334,7 @@ DT::datatable(weights, caption = 'Hospital Care Expenditures (Relative Importanc
                 dom = 'Bfrtip', 
                 buttons = c('copy', 'csv', 'excel')
               ))
+
 ```
 
 
@@ -988,6 +1377,46 @@ ggplot(inflation, aes(x = date, y = 100*pi_t)) +
   labs(
     x = 'Month',
     y = 'Hospital Inflation (% YoY)'
+  )
+
+fwrite(inflation, here('data/analysis/commodity_based_inflation.csv'))
+
+```
+
+## Comparing Industry-Based and Commodity-Based Inflation
+
+```{r}
+ind_infl = fread(here('data/analysis/industry_based_inflation.csv')) |>
+  na.omit() |>
+  mutate(date = as.Date(date))
+
+ind_infl = inner_join(ind_infl,
+                      inflation,
+                      by = 'date',
+                      suffix = c('_industry', '_commodity')) |>
+  select(date, contains('pi_')) |>
+  na.omit() 
+
+ind_infl |> 
+  pivot_longer(
+    cols = !date, 
+    values_to = 'Inflation', 
+    names_to = 'Source'
+  ) |> 
+  mutate(
+    Source = str_replace_all(Source, 'pi_t_', '')
+  ) |> 
+  ggplot(aes(x = date, y = 100*Inflation, color = Source)) + 
+  geom_line() + 
+  geom_point() +
+  scale_color_manual(values = ggpubr::get_palette('jco', 2)) +
+  labs(
+    y = 'Inflation (% YoY)', 
+    x = 'Month', 
+    caption = paste0(
+      'Correlation: ', 
+      round(cor(ind_infl$pi_t_industry, ind_infl$pi_t_commodity),2)
+    )
   )
 
 ```
@@ -1063,7 +1492,6 @@ legend = ggpubr::get_palette('jco', 3)
 names(legend) = c('Other', 'Medicare', 'Medicaid')
 
 inner_join(ri_monthly, ppi_long, by = c('date', 'payerType')) |>
-  na.omit() |> 
   # get price component of the laspeyres-style decomp
   group_by(payerType) |>
   mutate(
@@ -1187,7 +1615,6 @@ inner_join(ri_monthly, ppi_long, by = c('date', 'payerType')) |>
 legend = ggpubr::get_palette('jco', 3)
 names(legend) = c('Other', 'Medicare', 'Medicaid')
 inner_join(ri_monthly, ppi_long, by = c('date', 'payerType')) |>
-  na.omit() |> 
   # get price component of the paasche-style decomp
   group_by(payerType) |>
   mutate(
