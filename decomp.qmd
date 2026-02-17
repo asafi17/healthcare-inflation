@@ -570,6 +570,8 @@ inflation |>
 
 ### Compute Overall Hospital Inflation (Annual)
 
+We repeat the same exercise at the annual frequency. We compute expenditure shares from the annual CMS data directly (rather than spreading them across months) and take the annual average of the monthly PPI series. The weighted price index $P_t = \sum_i w_{i,t} \times p_{i,t}$ is then computed year-by-year, and year-over-year inflation is $\pi_t = 100 \times (P_t - P_{t-1}) / P_{t-1}$.
+
 ```{r}
 # store annual shares and pivot longer
 exp_year_long = exp |> 
@@ -876,9 +878,13 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
 
 ## Industry Based Decomposition of Hospital Inflation (Annual)
 
+We now decompose annual hospital inflation into price and weight components using the same Laspeyres and Paasche identities applied to the annual data. The lag is 1 year rather than 12 months. Each component is normalized by $P_{t-1}$ and multiplied by 100 so the contributions are in percentage points and sum to $\pi_t$.
+
 ::: panel-tabset
 
 ### Laspeyres Decomposition by Weights and Prices
+
+The Laspeyres decomposition evaluates price changes at prior-year weights and weight changes at current-year prices: $\Delta P_t^L = \sum_i w_{i,t-1} \Delta p_i + \sum_i \Delta w_i \, p_{i,t}$.
 
 ```{r}
 
@@ -937,6 +943,8 @@ inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
 
 ### Laspeyres Decomposition by Payer Type
 
+Rather than splitting into price vs. weight, we aggregate each payer's total contribution (price + weight) to show how much of overall inflation is attributable to Medicare, Medicaid, and Private/Other.
+
 ```{r}
 legend = ggpubr::get_palette('jco', 3)
 names(legend) = c('Private/Other', 'Medicare', 'Medicaid')
@@ -947,31 +955,31 @@ inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
     price_component_L = lag(wt, 1) * (ppi - lag(ppi, 1)),
     weight_component_L = ppi * (wt - lag(wt, 1))
   ) |>
-  ungroup() |> 
-  # store the contribution from each 
+  ungroup() |>
+  # store the contribution from each
   mutate(
     contribution_L = price_component_L + weight_component_L
-  ) |> 
+  ) |>
   select(
     year, payerType, contribution_L
-  ) |> 
-    arrange(payerType, year) |> 
+  ) |>
+    arrange(payerType, year) |>
   # normalize by P_{t-k} to convert from level change to percentage change
-  left_join(inflation_annual, by = 'year') |> 
-  group_by(payerType) |> 
+  left_join(inflation_annual, by = 'year') |>
+  group_by(payerType) |>
   mutate(
     Contribution = contribution_L / lag(P_t, 1) * 100,
     pi_t = pi_t
   ) |>
-  ungroup() |> 
+  ungroup() |>
   # check the inflation total matches pi_t
-  group_by(year) |> 
-  mutate(check = sum(Contribution)) |> 
-  ungroup() |> 
+  group_by(year) |>
+  mutate(check = sum(Contribution)) |>
+  ungroup() |>
   mutate(
     flag = ifelse(round(check - pi_t, 5) == 0, F, T)
-  ) |> 
-  # filter(year >= 2001) |>
+  ) |>
+  filter(year >= 2001) |>
   ggplot(aes(x = year)) +
   geom_col(aes(y = Contribution, color = payerType, fill = payerType), alpha = .7) +
   geom_point(aes(y = pi_t)) +
@@ -992,6 +1000,8 @@ inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
 
 
 ### Paasche Decomposition by Weights and Prices
+
+The Paasche decomposition evaluates price changes at current-year weights and weight changes at prior-year prices: $\Delta P_t^P = \sum_i w_{i,t} \Delta p_i + \sum_i \Delta w_i \, p_{i,t-1}$.
 
 ```{r}
 legend = ggpubr::get_palette('jco', 2)
@@ -1050,6 +1060,8 @@ inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
 
 
 ### Paasche Decomposition by Payer Type
+
+Same payer-level aggregation as the Laspeyres tab, but using the Paasche identity so that price effects are evaluated at current weights and weight effects at prior-year prices.
 
 ```{r}
 legend = ggpubr::get_palette('jco', 3)
