@@ -220,7 +220,7 @@ ppi = import_haver(series = c("R62211A2@PPIR",
                               "R62211A6@PPIR"),eop = F) |> 
   rename(ppi_Medicare = r62211a2,
          ppi_Medicaid = r62211a4,
-         `ppi_Private/Other` = r62211a6) 
+         ppi_Other = r62211a6)
 
 
 ppi |>
@@ -228,6 +228,7 @@ ppi |>
                names_to = 'Series',
                values_to = 'Value') |>
   mutate(Series = str_replace_all(Series, 'ppi_', '')) |>
+  mutate(Series = ifelse(Series == 'Other', 'Private/Other', Series)) |>
   ggplot(aes(x = date, color = Series, y = Value)) +
   # geom_point() +
   geom_line(linewidth = 1.05) +
@@ -257,21 +258,21 @@ ppi_yearly = ppi |>
   ) |> 
   group_by(year) |> 
   summarise(
-    ppi_Medicare = mean(ppi_Medicare, na.rm = T), 
-    ppi_Medicaid = mean(ppi_Medicaid, na.rm = T), 
-    `ppi_Private/Other` = mean(`ppi_Private/Other`, na.rm = T)
-  )|> 
+    ppi_Medicare = mean(ppi_Medicare, na.rm = T),
+    ppi_Medicaid = mean(ppi_Medicaid, na.rm = T),
+    ppi_Other = mean(ppi_Other, na.rm = T)
+  )|>
   ungroup()
 
-ppi_yearly |> 
-  rename(`ppi_Private/Other` = `ppi_Private/Other`) |> 
+ppi_yearly |>
   pivot_longer(
-    cols = !year, 
-    names_to = 'Series', 
+    cols = !year,
+    names_to = 'Series',
     values_to = 'Value'
-  ) |> 
-  mutate(Series = str_replace_all(Series, 'ppi_', '')) |> 
-  ggplot(aes(x = year, color = Series, y = Value)) + 
+  ) |>
+  mutate(Series = str_replace_all(Series, 'ppi_', '')) |>
+  mutate(Series = ifelse(Series == 'Other', 'Private/Other', Series)) |>
+  ggplot(aes(x = year, color = Series, y = Value)) +
   # geom_point() + 
   geom_line(linewidth = 1.05) + 
   labs(
@@ -579,7 +580,7 @@ We repeat the same exercise at the annual frequency. We compute expenditure shar
 exp_year_long = exp |> 
   mutate(shr_Medicare = Medicare / total, 
          shr_Medicaid = Medicaid / total, 
-         `shr_Private/Other` = Other / total) |> 
+         shr_Other = Other / total) |>
   select(year, contains('shr'))  |> 
   pivot_longer(
     cols = !year, 
@@ -954,6 +955,7 @@ Rather than splitting into price vs. weight, we aggregate each payer's total con
 legend = ggpubr::get_palette('jco', 3)
 names(legend) = c('Private/Other', 'Medicare', 'Medicaid')
 inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
+  mutate(payerType = ifelse(payerType == 'Other', 'Private/Other', payerType)) |>
   # get price component of the laspeyres-style decomp
   group_by(payerType) |>
   mutate(
@@ -1078,17 +1080,18 @@ Same payer-level aggregation as the Laspeyres tab, but using the Paasche identit
 legend = ggpubr::get_palette('jco', 3)
 names(legend) = c('Private/Other', 'Medicare', 'Medicaid')
 inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
+  mutate(payerType = ifelse(payerType == 'Other', 'Private/Other', payerType)) |>
   # get price component of the paasche-style decomp
   group_by(payerType) |>
   mutate(
     price_component_P = wt * (ppi - lag(ppi, 1)),
     weight_component_P = lag(ppi, 1) * (wt - lag(wt, 1))
   ) |>
-  ungroup() |> 
-  # store the contribution from each 
+  ungroup() |>
+  # store the contribution from each
   mutate(
     contribution_P = price_component_P + weight_component_P
-  ) |> 
+  ) |>
   select(
     year, payerType, contribution_P
   ) |> 
