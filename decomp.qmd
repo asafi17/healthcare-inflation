@@ -318,6 +318,35 @@ DT::datatable(ppi, caption = 'Producer Price Index (Haver)',
 
 ```
 
+
+### Producer Price Index \% YoY Change (Annual)
+```{r}
+# store ppi yearly by taking average
+ppi_yearly |>
+  mutate(
+    ppi_Medicare = 100 * (ppi_Medicare - lag(ppi_Medicare, 1)) / lag(ppi_Medicare, 1),
+    ppi_Medicaid = 100 * (ppi_Medicaid - lag(ppi_Medicaid, 1)) / lag(ppi_Medicaid, 1),
+    ppi_Other = 100 * (ppi_Other - lag(ppi_Other, 1)) / lag(ppi_Other, 1)
+  ) |>
+  pivot_longer(
+    cols = !year,
+    names_to = 'Series',
+    values_to = 'Value'
+  ) |>
+  mutate(Series = str_replace_all(Series, 'ppi_', '')) |>
+  mutate(Series = ifelse(Series == 'Other', 'Private/Other', Series)) |>
+  ggplot(aes(x = year, color = Series, y = Value)) +
+  # geom_point() + 
+  geom_line(linewidth = 1.05) + 
+  labs(
+    y = 'Producer Price Index (% YoY)',
+    x = 'Year'
+  ) +
+  scale_color_manual(values = ggpubr::get_palette('jco', 3)) + 
+  scale_x_continuous(breaks = seq(min(ppi_yearly$year), max(ppi_yearly$year), by = 2))
+
+```
+
 ## Industry-Based Expenditure Shares
 
 ### Download Data 
