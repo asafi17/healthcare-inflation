@@ -472,7 +472,7 @@ exp |>
   # geom_point(size = 3) +
   geom_line(linewidth = 1.05) + 
   labs(
-    y = 'Hospital Care Expenditures - Industry Based',
+    y = 'Hospital Expenditures',
     x = 'Year',
     subtitle = 'Billions $'
   ) + 
@@ -482,7 +482,7 @@ exp |>
                  max(exp$year), 
                  by = 2))
 
-DT::datatable(exp, caption = 'Hospital Care Expenditures (Billions)', rownames = F, 
+DT::datatable(exp, caption = 'Hospital Expenditures (Billions)', rownames = F, 
               extensions = 'Buttons',
               options = list(
                 dom = 'Bfrtip', 
@@ -490,6 +490,40 @@ DT::datatable(exp, caption = 'Hospital Care Expenditures (Billions)', rownames =
               ))
 
 rm(list = setdiff(ls(), c('exp', 'ppi', 'ppi_yearly')))
+```
+
+### \% YoY Change in Total Expenditures by Payer-Type (Annual)
+
+```{r}
+
+# plot 
+exp |> 
+  mutate(
+    Medicare = 100*(Medicare - lag(Medicare, 1)) / lag(Medicare, 1), 
+    Medicaid = 100 * (Medicaid - lag(Medicaid, 1)) / lag(Medicaid, 1), 
+    Other = 100 * (Other - lag(Other, 1)) / lag(Other, 1)
+  ) |> 
+  rename(`Private/Other` = Other) |> 
+  select(-total) |>
+  na.omit() |> 
+  pivot_longer(
+    cols = !year, 
+    names_to = 'Series', 
+    values_to = 'Value'
+  ) |> 
+  ggplot(aes(x = year, color = Series, y = Value)) + 
+  # geom_point(size = 3) +
+  geom_line(linewidth = 1.05) + 
+  labs(
+    y = 'Hospital Expenditures',
+    x = 'Year',
+    subtitle = '% YoY'
+  ) + 
+  scale_color_manual(values = ggpubr::get_palette('jco', 4)) + 
+  scale_x_continuous(
+    breaks = seq(min(exp$year), 
+                 max(exp$year), 
+                 by = 2))
 ```
 
 
@@ -518,10 +552,43 @@ exp_monthly |>
   ggplot(aes(x = date, color = Series, y = Value)) + 
   geom_line(linewidth = 1.05) + 
   labs(
-    y = 'Hospital Care Expenditures - Industry Based',
+    y = 'Hospital Expenditures',
     x = 'Month',
     subtitle = 'Billions $'
   ) + 
+  scale_color_manual(values = ggpubr::get_palette('jco', 3)) + 
+  scale_x_date(
+    breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
+    date_labels = "%Y"
+  ) 
+
+```
+
+### \% YoY Change in Total Expenditures by Payer-Type (Monthly)
+
+```{r}
+
+exp_monthly |>
+  select(-total, -year) |> 
+  mutate(
+    Medicare = 100 * (Medicare - lag(Medicare, 12)) / lag(Medicare, 12), 
+    Medicaid = 100 * (Medicaid - lag(Medicaid, 12)) / lag(Medicaid, 12),
+    Other = 100 * (Other - lag(Other, 12)) / lag(Other, 12)
+  ) |> 
+    rename(`Private/Other` = Other) |> 
+  pivot_longer(
+    cols = !date, 
+    names_to = 'Series', 
+    values_to = 'Value'
+  ) |> 
+  na.omit() |> 
+  ggplot(aes(x = date, color = Series, y = Value)) + 
+  geom_line(linewidth = 1.05) + 
+  labs(
+    y = 'Hospital Expenditures',
+    x = 'Month',
+    subtitle = '% YoY'
+    ) + 
   scale_color_manual(values = ggpubr::get_palette('jco', 3)) + 
   scale_x_date(
     breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
@@ -557,7 +624,7 @@ exp_monthly |>
   # geom_point() + 
   geom_line(linewidth = 1.05) + 
   labs(
-    y = 'Hospital Expenditure Shares - Industry Based',
+    y = 'Hospital Expenditure Shares',
     x = 'Month'
   ) + 
   scale_color_manual(values = ggpubr::get_palette('jco', 3)) + 
@@ -592,8 +659,9 @@ exp_monthly |>
   # geom_point() + 
   geom_line(linewidth = 1.05) + 
   labs(
-    y = 'Hospital Expenditure Shares (% YoY)',
-    x = 'Month'
+    y = 'Hospital Expenditure Shares',
+    x = 'Month',
+    subtitle = '% YoY'
   ) + 
   scale_color_manual(values = ggpubr::get_palette('jco', 3)) + 
   scale_x_date(
@@ -630,8 +698,9 @@ exp |>
   # geom_point() + 
   geom_line(linewidth = 1.05) + 
   labs(
-    y = 'Hospital Expenditure Shares (% YoY)',
-    x = 'Year'
+    y = 'Hospital Expenditure Shares',
+    x = 'Year',
+    subtitle = '% YoY'
   ) +
   scale_color_manual(values = ggpubr::get_palette('jco', 3)) + 
   scale_x_continuous(
@@ -714,7 +783,8 @@ inflation |>
   # geom_hline(yintercept = mean(inflation$pi_t, na.rm = T), linetype = 'dashed') + 
   labs(
     x = 'Month',
-    y = 'Inflation (% YoY)'
+    y = 'Inflation',
+    subtitle = '% YoY'
   ) + 
     scale_x_date(
     breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
@@ -742,7 +812,8 @@ inflation |>
   # geom_hline(yintercept = mean(inflation$pi_t, na.rm = T), linetype = 'dashed') + 
   labs(
     x = 'Month',
-    y = 'Inflation (% YoY)'
+    y = 'Inflation',
+    subtitle = '% YoY'
   ) + 
     scale_x_date(
     breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
@@ -770,7 +841,8 @@ inflation |>
   # geom_hline(yintercept = mean(inflation$pi_t, na.rm = T), linetype = 'dashed') + 
   labs(
     x = 'Month',
-    y = 'Inflation (% YoY)'
+    y = 'Inflation',
+    subtitle = '% YoY'
   ) + 
     scale_x_date(
     breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
@@ -845,7 +917,8 @@ inflation_annual |>
   ggplot(aes(x = year, y = Hospital)) +
   geom_line(linewidth = 1.05) +
   # geom_hline(yintercept = mean(inflation$pi_t, na.rm = T), linetype = 'dashed') +
-  labs(x = 'Year', y = 'Inflation (% YoY)') +
+  labs(x = 'Year', y = 'Inflation', 
+       subtitle = '% YoY') +
   scale_x_continuous(breaks = seq(min(exp_year_long$year), max(exp_year_long$year), by = 2))
 # scale_color_manual(values = ggpubr::get_palette('jco', 3))
 
@@ -903,7 +976,7 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
   scale_fill_manual(values = legend) +
   scale_x_date(breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
                date_labels = '%Y') +
-  labs(x = '', y = 'Percentage Point')
+  labs(x = 'Month', y = 'Percentage Point')
 
 
 ```
@@ -959,7 +1032,7 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
   scale_x_date(breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
                date_labels = '%Y') +
   labs(
-    x = '', 
+    x = 'Month', 
     y = 'Percentage Points',
     fill = 'Payer Type', 
     color = 'Payer Type'
@@ -1020,7 +1093,7 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
     scale_x_date(breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
                date_labels = '%Y') +
   labs(
-    x = '', 
+    x = 'Month', 
     y = 'Percentage Point'
   )
 
@@ -1080,7 +1153,7 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
     scale_x_date(breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
                date_labels = '%Y') +
   labs(
-    x = '', 
+    x = 'Month', 
     y = 'Percentage Points',
     fill = 'Payer Type', 
     color = 'Payer Type'
@@ -1152,7 +1225,7 @@ inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
     breaks = seq(min(exp_year_long$year), max(exp_year_long$year), by = 2) 
   ) + 
   labs(
-    x = '', 
+    x = 'Year', 
     y = 'Percentage Point'
   )
 
@@ -1211,7 +1284,7 @@ inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
     breaks = seq(min(exp_year_long$year), max(exp_year_long$year), by = 2) 
   ) +
   labs(
-    x = '', 
+    x = 'Year', 
     y = 'Percentage Points',
     fill = 'Payer Type', 
     color = 'Payer Type'
@@ -1275,7 +1348,7 @@ inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
     breaks = seq(min(exp_year_long$year), max(exp_year_long$year), by = 2) 
   ) +
   labs(
-    x = '', 
+    x = 'Year', 
     y = 'Percentage Point'
   )
 
@@ -1333,7 +1406,7 @@ inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
   scale_color_manual(values = legend) +
   scale_fill_manual(values = legend) +
   scale_x_continuous(breaks = seq(min(exp_year_long$year), max(exp_year_long$year), by = 2)) +
-  labs(x = '',
+  labs(x = 'Year',
        y = 'Percentage Points',
        fill = 'Payer Type',
        color = 'Payer Type')
