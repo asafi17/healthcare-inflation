@@ -854,6 +854,64 @@ inflation |>
 
 
 
+```{r, fig.cap = 'Full Sample Partitioned Pairwise'}
+legend = c('Core PCE' = '#0073C2FF', 
+           'Healthcare' = '#EFC000FF', 
+           'Hospital' = '#868686ff')
+# healthcare vs. core pce 
+inflation |> 
+  left_join(pce, by = 'date')  |> 
+  rename(Hospital = pi_t) |> 
+  select(date, Healthcare, Hospital) |> 
+  na.omit() |> 
+  pivot_longer(
+    cols = !date, 
+    names_to = 'Type', 
+    values_to = 'Inflation'
+  ) |> 
+  ggplot(aes(x = date, y = Inflation, color = Type)) +
+  geom_line(linewidth = 1.05) +
+  # geom_hline(yintercept = mean(inflation$pi_t, na.rm = T), linetype = 'dashed') + 
+  labs(
+    x = 'Month',
+    y = 'Inflation',
+    subtitle = '% YoY'
+  ) + 
+    scale_x_date(
+    breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
+    date_labels = "%Y"
+  ) + 
+    scale_color_manual(values = legend) 
+
+# healthcare vs. hospital 
+inflation |> 
+  left_join(pce, by = 'date')  |> 
+  rename(Hospital = pi_t) |> 
+  select(date, `Core PCE`, Healthcare) |> 
+  na.omit() |> 
+  pivot_longer(
+    cols = !date, 
+    names_to = 'Type', 
+    values_to = 'Inflation'
+  ) |> 
+  ggplot(aes(x = date, y = Inflation, color = Type)) +
+  geom_line(linewidth = 1.05) +
+  # geom_hline(yintercept = mean(inflation$pi_t, na.rm = T), linetype = 'dashed') + 
+  labs(
+    x = 'Month',
+    y = 'Inflation',
+    subtitle = '% YoY'
+  ) + 
+    scale_x_date(
+    breaks = seq(min(exp_monthly$date), max(exp_monthly$date), by = "2 years"),
+    date_labels = "%Y"
+  ) + 
+    scale_color_manual(values = legend) 
+
+```
+
+
+
 ### Annual
 
 We repeat the same exercise at the annual frequency. We compute expenditure shares from the annual CMS data directly (rather than spreading them across months) and take the annual average of the monthly PPI series. The weighted price index $P_t = \sum_i w_{i,t} \times p_{i,t}$ is then computed year-by-year, and year-over-year inflation is $\pi_t = 100 \times (P_t - P_{t-1}) / P_{t-1}$.
