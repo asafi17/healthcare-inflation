@@ -2,10 +2,7 @@
 title: 'Inflation Dashboard'
 author: 'Shria Holla, Kelli Marquardt, and Aryan Safi'
 date: today
-format:
-  html:
-    embed-resources: true
-    self-contained: true
+format: html
 editor: visual
 code-fold: true
 execute:
@@ -107,7 +104,7 @@ series_registry <- tribble(
   "R6216",        "PPIR",      "PPI",         "PPI Home Health",
   "R621991",      "PPIR",      "PPI",         "PPI Blood and Organ Banks", 
   "R622",         "PPIR",      "PPI",         "PPI Hospitals",
-  "R6321",        "PPIR",      "PPI",         "PPI Nursing Facilities",
+  "R6231",        "PPIR",      "PPI",         "PPI Nursing Facilities",
   "R62321",       "PPIR",      "PPI",         "PPI Residential Developmental Disability Homes", 
   
   # special index (table 11) (NSA)
@@ -221,6 +218,7 @@ DT::datatable(
   rownames = FALSE,
   extensions = 'Buttons',
   options = list(
+    scrollY = T,
     dom = 'Blfrtip',
     buttons = c('copy', 'csv', 'excel'),
     pageLength = -1,
