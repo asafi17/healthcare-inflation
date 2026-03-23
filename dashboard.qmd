@@ -347,7 +347,13 @@ knitr::kable(ppi_ind$table, caption = ppi_ind$label, align = c("l", rep("r", 5))
 
 ## Healthcare Services Contribution to Core PCE Inflation
 
-This section measures how much of Core PCE inflation is attributable to healthcare services. Core PCE inflation can be decomposed into contributions from its three major components: goods excluding food & energy, services excluding energy & healthcare, and healthcare services. Each component's contribution equals its expenditure share of Core PCE multiplied by its YoY inflation rate. The healthcare services contribution share is then that contribution divided by total estimated Core PCE inflation, expressed as a percentage.
+This section measures how much of Core PCE inflation is attributable to healthcare services. Core PCE inflation can be decomposed into contributions from its three major components: 
+
+(i) goods excluding food & energy   
+(ii) services excluding energy & healthcare    
+(iii) healthcare services   
+
+Each component's contribution equals its expenditure share of Core PCE multiplied by its YoY inflation rate. The healthcare services contribution share is then that contribution divided by total estimated Core PCE inflation, expressed as a percentage.
 
 The approach follows Shria Holla's code in `healthcare_graphs.Rmd` (section 5). The steps are:
 
