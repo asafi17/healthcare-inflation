@@ -2,14 +2,16 @@
 title: 'Inflation Dashboard'
 author: 'Shria Holla, Kelli Marquardt, and Aryan Safi'
 date: today
-format: html
+format:
+  html:
+    embed-resources: true
+    self-contained: true
 editor: visual
 code-fold: true
-execute: 
+execute:
   warning: false
   message: false
 toc: true
-embed-resources: true
 ---
 
 ```{r setup, include=FALSE}
