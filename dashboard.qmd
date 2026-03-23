@@ -53,7 +53,7 @@ theme_set(
 
 ## Data Staleness Monitor
 
-This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. Rather than listing each series individually, it summarizes by distinct end-date levels and flags any series that is 3 or more months behind the most recent data date.
+This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. Series whose end date matches the most recent available month are highlighted in green; those between the most recent and the 3-month stale cutoff are in yellow; and those past the cutoff (or missing entirely) are in red.
 
 ```{r staleness-monitor}
 # --------------------------------------------------------------------------
@@ -120,34 +120,13 @@ series_registry <- tribble(
   "umspsn",       "CPIDATA",   "CPI",         "CPI Hospital Services (NSA)"
 )
 
-DT::datatable(
-  series_registry,
-  caption = "Haver Codes",
-  colnames = c("Series Code", "Database", "Source Group", "Description"),
-  rownames = FALSE,
-  extensions = 'Buttons',
-  options = list(
-    # Added 'l' to dom to show the length menu
-    dom = 'Blfrtip', 
-    buttons = c('copy', 'csv', 'excel'),
-    # Sets the default number of rows to display
-    pageLength = 10, 
-    # Defines the options available in the dropdown
-    lengthMenu = list(c(10, 25, 50, -1), c('10', '25', '50', 'All'))
-  )
-)
-
-```
-
-
-```{r}
 # --------------------------------------------------------------------------
 # Pull each series and extract the last non-NA date
 # --------------------------------------------------------------------------
 get_end_date <- function(code, db) {
   full_code <- paste0(code, "@", db)
   tryCatch({
-    d <- import_haver(series = full_code, eop = FALSE) |> 
+    d <- import_haver(series = full_code, eop = FALSE) |>
       na.omit()
     col <- setdiff(names(d), "date")
     d <- d |> filter(!is.na(.data[[col[1]]]))
@@ -169,78 +148,46 @@ stale_threshold <- most_recent %m-% months(3)
 
 staleness <- staleness |>
   mutate(
-    months_behind = as.numeric(
-      difftime(most_recent, end_date, units = "days")
-    ) / 30.44,
-    flag = case_when(
-      is.na(end_date)            ~ "MISSING",
-      end_date <= stale_threshold ~ "STALE",
-      TRUE                       ~ "OK"
+    status = case_when(
+      is.na(end_date)            ~ "Missing",
+      end_date == most_recent    ~ "Current",
+      end_date > stale_threshold ~ "Behind",
+      TRUE                       ~ "Stale"
     )
   )
-```
 
-### End-Date Summary
-
-```{r staleness-summary}
-# Summary table: how many series end at each date, by source group
-end_date_summary <- staleness |>
-  group_by(source_group, end_date) |>
-  summarise(
-    n_series = n(),
-    series = paste(series_code, collapse = ", "),
-    .groups = "drop"
-  ) |>
-  arrange(source_group, desc(end_date))
+# --------------------------------------------------------------------------
+# Single color-coded table for all series
+# --------------------------------------------------------------------------
+staleness_display <- staleness |>
+  select(source_group, series_code, database, description, end_date, status) |>
+  arrange(source_group, series_code)
 
 DT::datatable(
-  end_date_summary,
-  caption = "Series Count by End Date and Source",
-  colnames = c("Source", "End Date", "# Series", "Series Codes"),
+  staleness_display,
+  caption = paste0(
+    "Series Staleness Monitor (most recent: ",
+    format(most_recent, "%B %Y"),
+    " | stale cutoff: ",
+    format(stale_threshold, "%B %Y"), ")"
+  ),
+  colnames = c("Source", "Code", "Database", "Description", "End Date", "Status"),
   rownames = FALSE,
   extensions = 'Buttons',
   options = list(
-    dom = 'Bfrtip',
+    dom = 'Blfrtip',
     buttons = c('copy', 'csv', 'excel'),
-    pageLength = 25
+    pageLength = -1,
+    lengthMenu = list(c(10, 25, 50, -1), c('10', '25', '50', 'All'))
   )
-)
-```
-
-### Stale or Missing Series
-
-Series that are 3+ months behind the most recent data date (`r format(most_recent, "%B %Y")`) or that failed to load.
-
-```{r staleness-flagged}
-flagged <- staleness |>
-  filter(flag != "OK") |>
-  select(source_group, series_code, database, description, end_date, months_behind, flag) |>
-  arrange(flag, desc(months_behind))
-
-if (nrow(flagged) == 0) {
-  cat("All series are current -- no investigation needed.")
-} else {
-  DT::datatable(
-    flagged,
-    caption = paste0("Series requiring investigation (threshold: ",
-                     format(stale_threshold, "%B %Y"), ")"),
-    colnames = c("Source", "Code", "Database", "Description",
-                 "End Date", "Months Behind", "Status"),
-    rownames = FALSE,
-    extensions = 'Buttons',
-    options = list(
-      dom = 'Bfrtip',
-      buttons = c('copy', 'csv', 'excel')
+) |>
+  DT::formatStyle(
+    "status",
+    target = "row",
+    backgroundColor = DT::styleEqual(
+      c("Current", "Behind", "Stale", "Missing"),
+      c("#d4edda", "#fff3cd", "#f8d7da", "#f8d7da")
     )
-  ) |>
-    DT::formatRound("months_behind", digits = 1) |>
-    DT::formatStyle(
-      "flag",
-      backgroundColor = DT::styleEqual(
-        c("STALE", "MISSING"),
-        c("#fff3cd", "#f8d7da")
-      )
-    )
-}
+  )
 ```
 
