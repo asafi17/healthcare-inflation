@@ -51,40 +51,168 @@ theme_set(
 ```
 
 
-(2)	Dashboard (at the monthly level)
-a.	You will be using the headline healthcare services price index values from the CPI, the PPI, and the PCE Price Index. Using those values, you will be displaying different estimates, all for different time periods. An example table is included at the end.
-i.	The estimates
-1.	Price Index Value
-2.	YoY Change
-3.	MoM Change (relative to immediately preceding month.  
-ii.	The time periods
-1.	Most recent month/release
-2.	The three immediately preceding months
-3.	12-month average
-b.	Please also include the value for healthcare services contribution to Core PCE inflation for each of the periods above. This data is already outputted from my code under “hcserv_infl_core_infl_share.csv”. 
-c.	The last thing that needs to be included is a check on the last date released for a series. This means that for all the codes included throughout the PCE, PPI, and CPI Haver code tables mentioned at the end of “Healthcare PCE Guide,” we will have an output of the most recent month released for each. Kelli asked that we go ahead with a general idea I had of only outputting the different levels of the end dates rather than the end date for each series. Maybe we could include a threshold of three months, where if a level is three months behind the most recent data date, then we investigate and figure out which series is behind. The goal is to catch if a series stops being published or even calculated. It will be a visual way of knowing when we *might* need to investigate. 
-d.	Here is an example table that Kelli drew. It does not have to follow this format. She only drew it for reference as to what values she is looking for, as listed above. An important note is that not all the series release at the same time, so formatting would have to be considered to reflect the most recent released month for each of the three price index series for healthcare services: CPI, PPI, and PCE. This table is such that December is the most recent release.
+## Data Staleness Monitor
 
+This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. Rather than listing each series individually, it summarizes by distinct end-date levels and flags any series that is 3 or more months behind the most recent data date.
 
-| PCE | Month t | Month t-1 | Month t-2 | Month t-3 | 12 m avg | 
-|-----|---------|-----------|-----------|-----------|----------|
-Price Index Value | | | | | |
-YoY | | | | | | 
-MoM | | | | | | 
-Healthcare Services contribution to Core PCE Inflation | | | | | |
+```{r staleness-monitor}
+# --------------------------------------------------------------------------
+# Define all Haver series used across the project, grouped by source
+# --------------------------------------------------------------------------
+series_registry <- tribble(
+  ~series_code,   ~database,   ~source_group, ~description,
+  # --- PCE Nominal Expenditures (USNA) ---
+  “cm”,           “USNA”,      “PCE”,         “Overall PCE NE”,
+  “cxfem”,        “USNA”,      “PCE”,         “Core PCE NE”,
+  “cgxfem”,       “USNA”,      “PCE”,         “Goods ex F&E NE”,
+  “csm”,          “USNA”,      “PCE”,         “Services NE”,
+  “csxhem”,       “USNA”,      “PCE”,         “Services ex E&HC NE”,
+  “csdm”,         “USNA”,      “PCE”,         “HC Services NE”,
+  “csdom”,        “USNA”,      “PCE”,         “Outpatient Services NE”,
+  “csmpm”,        “USNA”,      “PCE”,         “Physician Services NE”,
+  “csmdm”,        “USNA”,      “PCE”,         “Dental Services NE”,
+  “csmom”,        “USNA”,      “PCE”,         “Paramedical Services NE”,
+  “csmnm”,        “USNA”,      “PCE”,         “Home & Nursing NE”,
+  “csmhpm”,       “USNA”,      “PCE”,         “Hospital Services NE”,
+  “csmhnm”,       “USNA”,      “PCE”,         “Nursing Homes NE”,
+  “ctgm”,         “USNA”,      “PCE”,         “Total Goods NE”,
+  # --- PCE Price Indices (USNA) ---
+  “jcm”,          “USNA”,      “PCE”,         “Overall PCE PI”,
+  “jcxfem”,       “USNA”,      “PCE”,         “Core PCE PI”,
+  “jcgxfem”,      “USNA”,      “PCE”,         “Goods ex F&E PI”,
+  “jcsm”,         “USNA”,      “PCE”,         “Services PI”,
+  “jcsxhem”,      “USNA”,      “PCE”,         “Services ex E&HC PI”,
+  “jcsdm”,        “USNA”,      “PCE”,         “HC Services PI”,
+  “jcsdom”,       “USNA”,      “PCE”,         “Outpatient Services PI”,
+  “jcsmpm”,       “USNA”,      “PCE”,         “Physician Services PI”,
+  “jcsmdm”,       “USNA”,      “PCE”,         “Dental Services PI”,
+  “jcsmom”,       “USNA”,      “PCE”,         “Paramedical Services PI”,
+  “jcsmnm”,       “USNA”,      “PCE”,         “Home & Nursing PI”,
+  “jcsmhpm”,      “USNA”,      “PCE”,         “Hospital Services PI”,
+  “jcsmhnm”,      “USNA”,      “PCE”,         “Nursing Homes PI”,
+  “jctgm”,        “USNA”,      “PCE”,         “Total Goods PI”,
+  # --- Core PCE (USECON) ---
+  “jcxfebm”,      “USECON”,    “PCE”,         “Core PCE PI (USECON)”,
+  # --- PPI Industry-Based (PPIR) ---
+  “r6211”,        “PPIR”,      “PPI”,         “PPI Offices of Physicians”,
+  “r6215”,        “PPIR”,      “PPI”,         “PPI Medical Labs”,
+  “r6216”,        “PPIR”,      “PPI”,         “PPI Home Health”,
+  “r622”,         “PPIR”,      “PPI”,         “PPI Hospitals”,
+  “r6231”,        “PPIR”,      “PPI”,         “PPI Nursing Facilities”,
+  “R62211A2”,     “PPIR”,      “PPI”,         “PPI Hospitals - Medicare”,
+  “R62211A4”,     “PPIR”,      “PPI”,         “PPI Hospitals - Medicaid”,
+  “R62211A6”,     “PPIR”,      “PPI”,         “PPI Hospitals - Private/Other”,
+  # --- PPI Commodity-Based (PPI) ---
+  “P512101B”,     “PPI”,       “PPI”,         “PPI Hospital Inpatient (Commodity)”,
+  “P512101C”,     “PPI”,       “PPI”,         “PPI Hospital Inpatient Medicare (Commodity)”,
+  “P512101D”,     “PPI”,       “PPI”,         “PPI Hospital Inpatient Medicaid (Commodity)”,
+  “P511104B”,     “PPI”,       “PPI”,         “PPI Hospital Outpatient (Commodity)”,
+  “P511104C”,     “PPI”,       “PPI”,         “PPI Hospital Outpatient Medicare (Commodity)”,
+  “P511104D”,     “PPI”,       “PPI”,         “PPI Hospital Outpatient Medicaid (Commodity)”,
+  # --- CPI (CPIDATA) ---
+  “umsptn”,       “CPIDATA”,   “CPI”,         “CPI Medical Care Services (NSA)”,
+  “umspsn”,       “CPIDATA”,   “CPI”,         “CPI Hospital Services (NSA)”
+)
 
+# --------------------------------------------------------------------------
+# Pull each series and extract the last non-NA date
+# --------------------------------------------------------------------------
+get_end_date <- function(code, db) {
+  full_code <- paste0(code, “@”, db)
+  tryCatch({
+    d <- import_haver(series = full_code, eop = FALSE)
+    col <- setdiff(names(d), “date”)
+    d <- d |> filter(!is.na(.data[[col[1]]]))
+    if (nrow(d) == 0) return(as.Date(NA))
+    max(d$date)
+  }, error = function(e) as.Date(NA))
+}
 
-(2)	Dashboard (at the monthly level)
-a.	You will be using the headline healthcare services price index values from the CPI, the PPI, and the PCE Price Index. Using those values, you will be displaying different estimates, all for different time periods. An example table is included at the end.
-i.	The estimates
-1.	Price Index Value
-2.	YoY Change
-3.	MoM Change (relative to immediately preceding month.  
-ii.	The time periods
-1.	Most recent month/release
-2.	The three immediately preceding months
-3.	12-month average
-b.	Please also include the value for healthcare services contribution to Core PCE inflation for each of the periods above. This data is already outputted from my code under “hcserv_infl_core_infl_share.csv”. 
-c.	The last thing that needs to be included is a check on the last date released for a series. This means that for all the codes included throughout the PCE, PPI, and CPI Haver code tables mentioned at the end of “Healthcare PCE Guide,” we will have an output of the most recent month released for each. Kelli asked that we go ahead with a general idea I had of only outputting the different levels of the end dates rather than the end date for each series. Maybe we could include a threshold of three months, where if a level is three months behind the most recent data date, then we investigate and figure out which series is behind. The goal is to catch if a series stops being published or even calculated. It will be a visual way of knowing when we *might* need to investigate. 
-d.	Here is an example table that Kelli drew. It does not have to follow this format. She only drew it for reference as to what values she is looking for, as listed above. An important note is that not all the series release at the same time, so formatting would have to be considered to reflect the most recent released month for each of the three price index series for healthcare services: CPI, PPI, and PCE. This table is such that December is the most recent release.
+staleness <- series_registry |>
+  rowwise() |>
+  mutate(end_date = get_end_date(series_code, database)) |>
+  ungroup()
+
+# --------------------------------------------------------------------------
+# Determine the most recent end date and flag stale series
+# --------------------------------------------------------------------------
+most_recent <- max(staleness$end_date, na.rm = TRUE)
+stale_threshold <- most_recent %m-% months(3)
+
+staleness <- staleness |>
+  mutate(
+    months_behind = as.numeric(
+      difftime(most_recent, end_date, units = “days”)
+    ) / 30.44,
+    flag = case_when(
+      is.na(end_date)            ~ “MISSING”,
+      end_date <= stale_threshold ~ “STALE”,
+      TRUE                       ~ “OK”
+    )
+  )
+```
+
+### End-Date Summary
+
+```{r staleness-summary}
+# Summary table: how many series end at each date, by source group
+end_date_summary <- staleness |>
+  group_by(source_group, end_date) |>
+  summarise(
+    n_series = n(),
+    series = paste(series_code, collapse = “, “),
+    .groups = “drop”
+  ) |>
+  arrange(source_group, desc(end_date))
+
+DT::datatable(
+  end_date_summary,
+  caption = “Series Count by End Date and Source”,
+  colnames = c(“Source”, “End Date”, “# Series”, “Series Codes”),
+  rownames = FALSE,
+  extensions = 'Buttons',
+  options = list(
+    dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel'),
+    pageLength = 25
+  )
+)
+```
+
+### Stale or Missing Series
+
+Series that are 3+ months behind the most recent data date (`r format(most_recent, “%B %Y”)`) or that failed to load.
+
+```{r staleness-flagged}
+flagged <- staleness |>
+  filter(flag != “OK”) |>
+  select(source_group, series_code, database, description, end_date, months_behind, flag) |>
+  arrange(flag, desc(months_behind))
+
+if (nrow(flagged) == 0) {
+  cat(“All series are current -- no investigation needed.”)
+} else {
+  DT::datatable(
+    flagged,
+    caption = paste0(“Series requiring investigation (threshold: “,
+                     format(stale_threshold, “%B %Y”), “)”),
+    colnames = c(“Source”, “Code”, “Database”, “Description”,
+                 “End Date”, “Months Behind”, “Status”),
+    rownames = FALSE,
+    extensions = 'Buttons',
+    options = list(
+      dom = 'Bfrtip',
+      buttons = c('copy', 'csv', 'excel')
+    )
+  ) |>
+    DT::formatRound(“months_behind”, digits = 1) |>
+    DT::formatStyle(
+      “flag”,
+      backgroundColor = DT::styleEqual(
+        c(“STALE”, “MISSING”),
+        c(“#fff3cd”, “#f8d7da”)
+      )
+    )
+}
+```
 
