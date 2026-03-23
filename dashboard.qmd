@@ -313,7 +313,7 @@ build_summary_table <- function(series_code, database, label) {
 
   names(tbl) <- c("Measure", col_labels)
 
-  list(table = tbl, label = label)
+  list(table = tbl, label = paste0(label, " (", series_code, "@", database, ")"))
 }
 ```
 
