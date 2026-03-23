@@ -235,3 +235,113 @@ DT::datatable(
   )
 ```
 
+## Healthcare Services Price Index Summary
+
+```{r summary-helper}
+# --------------------------------------------------------------------------
+# Helper: build a summary table for a single headline price index series
+# --------------------------------------------------------------------------
+build_summary_table <- function(series_code, database, label) {
+  full_code <- paste0(series_code, "@", database)
+  d <- import_haver(series = full_code, eop = FALSE)
+  col <- setdiff(names(d), "date")
+  names(d)[names(d) == col[1]] <- "pi"
+
+  d <- d |>
+    arrange(date) |>
+    filter(!is.na(pi)) |>
+    mutate(
+      yoy = (pi / lag(pi, 12) - 1) * 100,
+      mom = (pi / lag(pi, 1) - 1) * 100
+    )
+
+  # Most recent month for this series
+  latest <- d |> filter(!is.na(yoy)) |> slice_tail(n = 1)
+  latest_date <- latest$date
+
+  # Get the 4 most recent months with complete data
+  recent <- d |>
+    filter(!is.na(yoy), date <= latest_date) |>
+    slice_tail(n = 4)
+
+  # 12-month average (trailing 12 months ending at latest_date)
+  trailing_12 <- d |>
+    filter(!is.na(yoy), date <= latest_date) |>
+    slice_tail(n = 12)
+
+  avg_pi  <- mean(trailing_12$pi)
+  avg_yoy <- mean(trailing_12$yoy)
+  avg_mom <- mean(trailing_12$mom, na.rm = TRUE)
+
+  # Build the display columns: t, t-1, t-2, t-3, 12-mo avg
+  col_labels <- c(
+    format(recent$date[4], "%b %Y"),
+    format(recent$date[3], "%b %Y"),
+    format(recent$date[2], "%b %Y"),
+    format(recent$date[1], "%b %Y"),
+    "12-Mo Avg"
+  )
+
+  tbl <- data.frame(
+    Measure = c("Price Index", "YoY Change (%)", "MoM Change (%)"),
+    t0 = c(
+      round(recent$pi[4], 2),
+      round(recent$yoy[4], 2),
+      round(recent$mom[4], 2)
+    ),
+    t1 = c(
+      round(recent$pi[3], 2),
+      round(recent$yoy[3], 2),
+      round(recent$mom[3], 2)
+    ),
+    t2 = c(
+      round(recent$pi[2], 2),
+      round(recent$yoy[2], 2),
+      round(recent$mom[2], 2)
+    ),
+    t3 = c(
+      round(recent$pi[1], 2),
+      round(recent$yoy[1], 2),
+      round(recent$mom[1], 2)
+    ),
+    avg = c(
+      round(avg_pi, 2),
+      round(avg_yoy, 2),
+      round(avg_mom, 2)
+    )
+  )
+
+  names(tbl) <- c("Measure", col_labels)
+
+  list(table = tbl, label = label)
+}
+```
+
+### PCE Price Index: Healthcare Services
+
+```{r summary-pce}
+pce <- build_summary_table("jcsdm", "USNA", "PCE Healthcare Services")
+knitr::kable(pce$table, caption = pce$label, align = c("l", rep("r", 5)))
+```
+
+### CPI: Medical Care Services
+
+```{r summary-cpi}
+cpi <- build_summary_table("UMS", "CPIDATA", "CPI Medical Care Services")
+knitr::kable(cpi$table, caption = cpi$label, align = c("l", rep("r", 5)))
+```
+
+### PPI Commodity: Healthcare Services
+
+```{r summary-ppi-commodity}
+ppi_comm <- build_summary_table("P51", "PPI", "PPI Healthcare Services (Commodity)")
+knitr::kable(ppi_comm$table, caption = ppi_comm$label, align = c("l", rep("r", 5)))
+```
+
+### PPI Industry: Selected Health Care Industries
+
+```{r summary-ppi-industry}
+ppi_ind <- build_summary_table("RHC", "PPIR", "PPI Selected Health Care Industries")
+knitr::kable(ppi_ind$table, caption = ppi_ind$label, align = c("l", rep("r", 5)))
+```
+
