@@ -1,0 +1,90 @@
+---
+title: 'Inflation Dashboard'
+author: 'Shria Holla, Kelli Marquardt, and Aryan Safi'
+date: today
+format: html
+editor: visual
+code-fold: true
+execute: 
+  warning: false
+  message: false
+toc: true
+embed-resources: true
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+knitr::opts_chunk$set(
+  fig.width = 12,   # width in inches
+  fig.height = 6,  # height in inches
+  echo = TRUE,     # show code by default
+  warning = FALSE, # hide warnings
+  message = FALSE  # hide messages
+)
+# read in the population data from ipums
+pacman::p_load(here,
+               tidyverse,
+               data.table,
+               importhaver,
+               Haver,
+               readxl,
+               fredr)
+
+# set theme 
+theme_set(
+  theme_minimal() +
+    theme(
+      plot.title = element_text(size = 22, face = 'bold'),
+      plot.subtitle = element_text(size = 20),
+      legend.title = element_text(size = 16),
+      legend.text = element_text(size = 14),
+      legend.position = 'bottom',
+      axis.text = element_text(size = 13),
+      axis.title = element_text(size = 18),
+      plot.caption = element_text(size = 12),
+      axis.line = element_line(color = "black"),
+      strip.text = element_text(size = 16),
+      axis.ticks = element_line(size = 1.01)
+    )
+)
+
+```
+
+
+(2)	Dashboard (at the monthly level)
+a.	You will be using the headline healthcare services price index values from the CPI, the PPI, and the PCE Price Index. Using those values, you will be displaying different estimates, all for different time periods. An example table is included at the end.
+i.	The estimates
+1.	Price Index Value
+2.	YoY Change
+3.	MoM Change (relative to immediately preceding month.  
+ii.	The time periods
+1.	Most recent month/release
+2.	The three immediately preceding months
+3.	12-month average
+b.	Please also include the value for healthcare services contribution to Core PCE inflation for each of the periods above. This data is already outputted from my code under “hcserv_infl_core_infl_share.csv”. 
+c.	The last thing that needs to be included is a check on the last date released for a series. This means that for all the codes included throughout the PCE, PPI, and CPI Haver code tables mentioned at the end of “Healthcare PCE Guide,” we will have an output of the most recent month released for each. Kelli asked that we go ahead with a general idea I had of only outputting the different levels of the end dates rather than the end date for each series. Maybe we could include a threshold of three months, where if a level is three months behind the most recent data date, then we investigate and figure out which series is behind. The goal is to catch if a series stops being published or even calculated. It will be a visual way of knowing when we *might* need to investigate. 
+d.	Here is an example table that Kelli drew. It does not have to follow this format. She only drew it for reference as to what values she is looking for, as listed above. An important note is that not all the series release at the same time, so formatting would have to be considered to reflect the most recent released month for each of the three price index series for healthcare services: CPI, PPI, and PCE. This table is such that December is the most recent release.
+
+
+| PCE | Month t | Month t-1 | Month t-2 | Month t-3 | 12 m avg | 
+|-----|---------|-----------|-----------|-----------|----------|
+Price Index Value | | | | | |
+YoY | | | | | | 
+MoM | | | | | | 
+Healthcare Services contribution to Core PCE Inflation | | | | | |
+
+
+(2)	Dashboard (at the monthly level)
+a.	You will be using the headline healthcare services price index values from the CPI, the PPI, and the PCE Price Index. Using those values, you will be displaying different estimates, all for different time periods. An example table is included at the end.
+i.	The estimates
+1.	Price Index Value
+2.	YoY Change
+3.	MoM Change (relative to immediately preceding month.  
+ii.	The time periods
+1.	Most recent month/release
+2.	The three immediately preceding months
+3.	12-month average
+b.	Please also include the value for healthcare services contribution to Core PCE inflation for each of the periods above. This data is already outputted from my code under “hcserv_infl_core_infl_share.csv”. 
+c.	The last thing that needs to be included is a check on the last date released for a series. This means that for all the codes included throughout the PCE, PPI, and CPI Haver code tables mentioned at the end of “Healthcare PCE Guide,” we will have an output of the most recent month released for each. Kelli asked that we go ahead with a general idea I had of only outputting the different levels of the end dates rather than the end date for each series. Maybe we could include a threshold of three months, where if a level is three months behind the most recent data date, then we investigate and figure out which series is behind. The goal is to catch if a series stops being published or even calculated. It will be a visual way of knowing when we *might* need to investigate. 
+d.	Here is an example table that Kelli drew. It does not have to follow this format. She only drew it for reference as to what values she is looking for, as listed above. An important note is that not all the series release at the same time, so formatting would have to be considered to reflect the most recent released month for each of the three price index series for healthcare services: CPI, PPI, and PCE. This table is such that December is the most recent release.
+
