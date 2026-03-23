@@ -1,0 +1,836 @@
+---
+title: "Healthcare Graphs"
+author: "Shria Holla"
+output: html_document
+date: "`Sys.Date()"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list = ls())
+packages <- c("devtools", "importhaver", "ggplot2", "dplyr", "tidyr", "Haver", "foreign")
+lapply(packages, library, character.only = TRUE)
+```
+
+```{r}
+source("hcgraphs_functions.R")
+```
+
+
+
+##################################################################################################################################################################################################################################
+
+## (1) Overall PCE, Core PCE, and Healthcare Services Inflation Over Time
+```{r}
+
+#Pull Data
+usnalist <- c("jcm", "jcxfem", "jcsdm")
+rename_list <- c("ov_pi", "core_pi", "hcserv_pi")
+g1data <- get_haver_data(usnalist, rename_list = rename_list)
+
+#Calculate Inflation
+components <- c("ov", "core", "hcserv")
+g1data <- calc_infl(g1data)
+
+```
+### Plot Graphs
+```{r}
+g1plotspecs <- data.frame(
+  title = c(
+    "Overall PCE, Core PCE, and Healthcare Services Inflation",
+    "Overall PCE, Core PCE, and Healthcare Services Inflation since 2000"
+  ),
+  filename = c(
+    "ov_core_hcserv_infl.png",
+    "ov_core_hcserv_infl_2000.png"
+  ),
+  start_date = c(
+    NA, 
+    "2000-01-31"),
+  stringsAsFactors = FALSE
+)
+
+for (i in 1:nrow(g1plotspecs)) {
+  
+  g1 <- plot_line(
+    data = g1data,
+    y_cols = c(
+      "Overall PCE" = "ov_infl",
+      "Core PCE" = "core_infl", 
+      "Healthcare Services" = "hcserv_infl"
+      ),
+    colors = c(
+      "Overall PCE" = "darkgreen", 
+      "Core PCE" = "deeppink", 
+      "Healthcare Services" = "blue"
+      ),
+    title = g1plotspecs$title[i],
+    y_label = "Percent (%)",
+    show_legend = FALSE,
+    start_date = if(!is.na(g1plotspecs$start_date[i])) as.Date(g1plotspecs$start_date[i]) else NULL
+    )
+  
+  print(g1)
+  save_plot(g1, g1plotspecs$filename[i])
+}
+
+```
+ 
+### Clean Up G1 Values
+```{r}
+rm(g1, g1data, g1plotspecs, components)
+```
+
+
+
+
+
+
+
+
+
+
+##################################################################################################################################################################################################################################
+
+## (2) Weight of Healthcare Services in Overall PCE
+```{r}
+
+#Pull Data
+usnalist <- c("cm", "csdm")
+rename_list <- c("ov_ne", "hcserv_ne")
+g2data <- get_haver_data(usnalist, rename_list = rename_list)
+
+#Calculate Expenditure Share
+components <- c("hcserv")
+g2data <- g2data %>%
+  calc_shares(aggvar = "ov") %>%
+  mutate(hcserv_expshare = hcserv_expshare*100)
+
+```
+### Graph Weight of Healthcare Services in Overall PCE
+```{r}
+# Create healthcare weight graph using plot_line function with automatic features
+g2 <- plot_line(
+  data = g2data,
+  y_cols = list("hcserv weight in ov" = "hcserv_expshare"),
+  colors = c("hcserv weight in ov" = "blue"),
+  title = "Weight of Healthcare Services in Overall PCE",
+  y_label = "Percent (%) Share",
+  show_legend = FALSE
+)
+
+print(g2)
+save_plot(g2, "hcserv_weight_ov.png")
+```
+
+
+### Graph YoY Change in Healthcare Services Weight in Overall PCE, Monthly
+```{r}
+#Find year over year change in weight
+g2myoy <- calc_infl(g2data, pi_suffix = "_expshare", infl_suffix = "_weight_yoy")
+
+# Assign Plot Specifications
+g2mplotspecs <- data.frame(
+  title = c(
+    "YoY Change in Weight of Healthcare Services in Overall PCE\nMonthly",
+    "YoY Change in Weight of Healthcare Services in Overall PCE since 2000\nMonthly"
+  ),
+  filename = c(
+    "hcserv_weight_yoy_ov.png",
+    "hcserv_weight_yoy_ov_2000.png"
+  ),
+  start_date = c(
+    NA, 
+    "2000-01-31"
+    ),
+  stringsAsFactors = FALSE
+)
+
+#Graph
+for (i in 1:nrow(g2mplotspecs)) {
+  
+  g2m <- plot_line(
+    data = g2myoy,
+    y_cols = c("weight change" = "hcserv_weight_yoy"),
+    colors = c("weight change" = "blue"),
+    title = g2mplotspecs$title[i],
+    y_label = "Percent (%) Share",
+    show_legend = FALSE,
+    start_date = if(!is.na(g2mplotspecs$start_date[i])) as.Date(g2mplotspecs$start_date[i]) else NULL
+  )
+  
+  print(g2m)
+  save_plot(g2m, g2mplotspecs$filename[[i]])
+}
+
+```
+
+### Graph YoY Change in Healthcare Services Weight in Overall PCE, Annual
+```{r}
+#Annual
+g2ayoy <- g2data %>%
+  calc_infl(pi_suffix = "_expshare", infl_suffix = "_weight_yoy") %>%
+  mutate(year = format(date, "%Y")) %>%
+  group_by(year) %>%
+  summarize(yr_hcserv_weight_yoy = mean(hcserv_weight_yoy))
+
+# Assign Plot Specifications
+g2aplotspecs <- data.frame(
+  title = c(
+    "YoY Change in Weight of Healthcare Services in Overall PCE\nAnnual",
+    "YoY Change in Weight of Healthcare Services in Overall PCE since 2000\nAnnual"
+  ),
+  filename = c(
+    "hcserv_weight_yoy_ov_annual.png",
+    "hcserv_weight_yoy_ov_2000_annual.png"
+  ),
+  start_date = c(
+    NA, 
+    2000
+    ),
+  stringsAsFactors = FALSE
+)
+
+# Graph
+for (i in 1:nrow(g2aplotspecs)) {
+  g2a <- plot_line_year(
+    data = g2ayoy,
+    x_col = "year",
+    y_cols = list("YrlyYOY" = "yr_hcserv_weight_yoy"),
+    colors = c("YrlyYOY" = "blue"),
+    title = g2aplotspecs$title[i],
+    y_label = "Percent (%)",
+    show_legend = FALSE,
+    start_date = if (is.na(g2aplotspecs$start_date[i])) NULL else g2aplotspecs$start_date[i]
+    )
+  print(g2a)
+  save_plot(g2a, g2aplotspecs$filename[[i]])
+}
+```
+
+
+
+
+### Clean Up G2 Values
+```{r}
+rm(g2, g2data, g2aplotspecs, components, g2a, g2m, g2mplotspecs, g2ayoy, g2myoy)
+```
+
+
+
+##################################################################################################################################################################################################################################
+
+## (3) Weight of Healthcare Subcomponents in Healthcare Services
+
+```{r}
+# Pull Data
+usnalist <- c("csdm", "csdom", "csmpm", "csmdm", "csmom", "csmnm", "csmhpm", "csmhnm")
+rename_list <- c("hcserv_ne", "opserv_ne", "physerv_ne", "dentserv_ne", "paraserv_ne", "hnserv_ne", "hosp_ne", "nurs_ne")
+g3data <- get_haver_data(usnalist, rename_list = rename_list)
+```
+
+
+
+
+
+##################################################################################################################################################################################################################################
+
+
+### Graph Total Expenditure on Healthcare Services Subcomponents in Dollars
+```{r}
+# Levels Data
+g3levels <- g3data %>%
+ mutate(across(ends_with("ne"), ~.x/1000000))
+
+# Graph
+g3plotspecs <- data.frame(
+  title = c(
+    "Household Expenditure on Healthcare Services Subcomponents",
+    "Household Expenditure on Healthcare Services Subcomponents since 2000"
+  ),
+  filename = c(
+    "subcomp_exp_hcserv.png",
+    "subcomp_exp_hcserv_2000.png"
+  ),
+  start_date = c(
+    NA, 
+    "2000-01-31"
+    ),
+  stringsAsFactors = FALSE
+)
+
+for (i in 1:nrow(g3plotspecs)) {
+  
+  g3lev <- plot_line(
+    data = g3levels,
+    y_cols = list(
+      "Physician" = "physerv_ne",
+      "Dental" = "dentserv_ne",
+      "Paramedical" = "paraserv_ne", 
+      "Hospital" = "hosp_ne",
+      "Nursing Homes" = "nurs_ne"
+      ),
+    colors = c(
+      "Physician" = "darkblue",
+      "Dental" = "forestgreen", 
+      "Paramedical" = "darkorange",
+      "Hospital" = "purple",
+      "Nursing Homes" = "firebrick"
+    ),
+    title = g3plotspecs$title[i],
+    y_label = "Millions of Dollars",
+    start_date = if(!is.na(g3plotspecs$start_date[i])) as.Date(g3plotspecs$start_date[i]) else NULL
+  )
+  
+  print(g3lev)
+  save_plot(g3lev, g3plotspecs$filename[i])
+}
+
+```
+
+### Graph Weight of Subcomponents in Healthcare Services
+```{r}
+
+#Calculate Shares
+components <- c("physerv", "dentserv", "paraserv", "hosp", "nurs")
+g3shares <- g3data %>%
+  calc_shares(aggvar = "hcserv") %>%
+  mutate(across(ends_with("expshare"), ~.x*100))
+
+# Graph
+g3_share <- plot_line(
+  data = g3shares,
+  y_cols = list(
+    "Physician" = "physerv_expshare",
+    "Dental" = "dentserv_expshare",
+    "Paramedical" = "paraserv_expshare", 
+    "Hospital" = "hosp_expshare",
+    "Nursing Homes" = "nurs_expshare"
+  ),
+  colors = c(
+    "Physician" = "darkblue",
+    "Dental" = "forestgreen", 
+    "Paramedical" = "darkorange",
+    "Hospital" = "purple",
+    "Nursing Homes" = "firebrick"
+  ),
+  title = "Weight of Subcomponents in Healthcare Services",
+  y_label = "Percent (%) Share"
+)
+
+# Display the plot
+print(g3_share)
+save_plot(g3_share, "subcomp_weight_hcserv.png")
+
+```
+
+### Graph YoY Change in Subcomponent Weights in Healthcare Services
+```{r}
+
+#Calculate YoY Change in Expenditure Shares
+g3wtchng <- calc_infl(g3shares, pi_suffix = "_expshare", infl_suffix = "_yoy")
+
+#Graph
+g3_yoywt <- plot_line(
+  data = g3wtchng,
+  y_cols = list(
+    "Physician" = "physerv_yoy",
+    "Dental" = "dentserv_yoy",
+    "Paramedical" = "paraserv_yoy", 
+    "Hospital" = "hosp_yoy",
+    "Nursing Homes" = "nurs_yoy"
+  ),
+  colors = c(
+    "Physician" = "darkblue",
+    "Dental" = "forestgreen", 
+    "Paramedical" = "darkorange",
+    "Hospital" = "purple",
+    "Nursing Homes" = "firebrick"
+  ),
+  title = "YoY Change in Subcomponent Shares of Healthcare Services Expenditures",
+  y_label = "Percent (%) Share",
+  start_date = as.Date("2000-01-31")
+)
+
+print(g3_yoywt)
+save_plot(g3_yoywt, "subcomp_weight_yoy_hcserv_2000.png")
+```
+
+### Graph YoY Change in Weights of Subcomponents in Healthcare Services, Limited y-axis
+```{r}
+#Same graph with limited yaxis limits
+g3_yoywt_limit <- plot_line(
+  data = g3wtchng,
+  y_cols = list(
+    "Physician" = "physerv_yoy",
+    "Dental" = "dentserv_yoy",
+    "Paramedical" = "paraserv_yoy", 
+    "Hospital" = "hosp_yoy",
+    "Nursing Homes" = "nurs_yoy"
+  ),
+  colors = c(
+    "Physician" = "darkblue",
+    "Dental" = "forestgreen", 
+    "Paramedical" = "darkorange",
+    "Hospital" = "purple",
+    "Nursing Homes" = "firebrick"
+  ),
+  title = "YoY Change in Subcomponent Shares of Healthcare Services Expenditures",
+  y_label = "Percent (%) Share",
+ start_date = as.Date("2000-01-31"),
+ y_limits = c(-10, 10),
+ y_breaks = c(-10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10)
+)
+
+print(g3_yoywt_limit)
+save_plot(g3_yoywt_limit, "subcomp_weight_yoy_hcserv_2000_limit.png")
+
+
+```
+
+### Clean Up G3 Values
+```{r}
+rm(g3data, g3levels, g3plotspecs, g3shares, g3wtchng, g3_share, g3_yoywt, g3_yoywt_limit, g3lev, components)
+```
+
+##################################################################################################################################################################################################################################
+## (4) Healthcare Services Inflation Decomposition
+
+```{r}
+
+# Pull In Data
+usnalist <- c("csdm", "csdom", "csmpm", "csmdm", "csmom", "csmnm", "csmhpm", "csmhnm", "jcsdm", "jcsdom", "jcsmpm", "jcsmdm", "jcsmom", "jcsmnm", "jcsmhpm", "jcsmhnm")
+rename_list <- c("hcserv_ne", "opserv_ne", "physerv_ne", "dentserv_ne", "paraserv_ne", "hnserv_ne", "hosp_ne", "nurs_ne", "hcserv_pi", "opserv_pi", "physerv_pi", "dentserv_pi", "paraserv_pi", "hnserv_pi", "hosp_pi", "nurs_pi")
+g4data <- get_haver_data(usnalist, rename_list = rename_list)
+
+#Find inflation, shares, and contributions
+components <- c("physerv", "dentserv", "paraserv", "hosp", "nurs")
+g4data <- g4data %>%
+  calc_infl() %>%
+  calc_shares(aggvar = "hcserv") %>%
+  calc_contrib() %>%
+  calc_aggregate(aggvar = "hcserv")
+```
+
+##################################################################################################################################################################################################################################
+
+```{r}
+# components <- "physerv"
+# testdataset <- g4data %>%
+#   mutate(
+#     physerv_pi_lag12 = lag(physerv_pi, 12),
+#     physerv_ne_lag12 = lag(physerv_ne, 12),
+#     pricegrowth = (physerv_pi - physerv_pi_lag12) / physerv_pi_lag12,
+#     expgrowth = (physerv_ne - physerv_ne_lag12) / physerv_ne_lag12    
+#   ) 
+# testdataset <- testdataset %>%
+#   mutate(
+#     quantitygrowth = expgrowth - pricegrowth,
+#     pricegrowth = pricegrowth*100,
+#     quantitygrowth = quantitygrowth*100)
+# 
+# components <- c("pricegrowth", "quantitygrowth")
+# # Prepare Data
+# teststack <- prep_stacked_data(
+#   data = testdataset,
+#   contrib_cols = components,
+#   display_names = c(
+#   "Price",
+#   "Quantity"
+#   )
+# )
+# 
+# 
+# # Set Up Plot Specifications
+# testplotspecs <- data.frame(
+#   title = c(
+#     "Healthcare Services Expenditure Decomposition",
+#     "Healthcare Services Expenditure Decomposition since 2000"
+#   ),
+#   filename = c(
+#     "hcserv_exp_decomp.png",
+#     "hcserv_exp_decomp_2000.png"
+#   ),
+#   start_date = c(
+#     NA, 
+#     "2000-01-31"
+#     ),
+#   stringsAsFactors = FALSE
+# )
+# 
+# # Graph
+# for (i in 1:nrow(testplotspecs)) {
+#   test <- plot_decomp(
+#     data = teststack,
+#     component_order = c(
+#    "Price",
+#     "Quantity"
+#       ),
+#     colors = c(
+#      "Price" = "purple",
+#      "Quantity" = "darkorange"
+#       ),
+#     title = testplotspecs$title[[i]],
+#     start_date = if(!is.na(testplotspecs$start_date[i])) as.Date(testplotspecs$start_date[i]) else NULL
+#     )
+#   print(test)
+#   # save_plot(test, testplotspecs$filename[[i]])
+# }
+# 
+# 
+# testdataset <- mutate(testdataset, total2 = expgrowth*100)
+
+
+```
+
+
+
+
+
+
+
+
+### Graph Decomposition of Healthcare Services Inflation
+```{r}
+
+# Prepare Data
+g4stacked <- prep_stacked_data(
+  data = g4data, 
+  contrib_cols = paste0(components, "_contrib"),
+  display_names = c(
+  "Physician",
+  "Dental", 
+  "Paramedical", 
+  "Hospital", 
+  "Nursing Homes"
+  )
+)
+
+# Set Up Plot Specifications
+g4plotspecs <- data.frame(
+  title = c(
+    "Healthcare Services Inflation Decomposition",
+    "Healthcare Services Inflation Decomposition since 2000"
+  ),
+  filename = c(
+    "hcserv_infl_decomp.png",
+    "hcserv_infl_decomp_2000.png"
+  ),
+  start_date = c(
+    NA, 
+    "2000-01-31"
+    ),
+  stringsAsFactors = FALSE
+)
+
+# Graph
+for (i in 1:nrow(g4plotspecs)) {
+  g4 <- plot_decomp(
+    data = g4stacked,
+    component_order = c(
+      "Hospital",
+      "Physician",
+      "Paramedical",
+      "Dental",
+      "Nursing Homes"
+      ),
+    colors = c(
+     "Hospital" = "purple",
+      "Physician" = "darkblue",
+     "Paramedical" = "darkorange",
+     "Dental" = "forestgreen",
+      "Nursing Homes" = "firebrick"
+      ),
+    title = g4plotspecs$title[[i]],
+    start_date = if(!is.na(g4plotspecs$start_date[i])) as.Date(g4plotspecs$start_date[i]) else NULL
+    )
+  print(g4)
+  save_plot(g4, g4plotspecs$filename[[i]])
+}
+
+
+```
+
+### Clean Up G4 Values
+```{r}
+rm(g4data, g4plotspecs, g4stacked, g4, components, contrib_cols, display_names)
+```
+
+
+##################################################################################################################################################################################################################################
+
+## (5) Core PCE Inflation Decomposition
+```{r}
+# Pull In Data
+usnalist <- c("cxfem","cgxfem", "csxhem", "csdm", "jcxfem", "jcgxfem", "jcsxhem", "jcsdm")
+rename_list <- c("core_ne", "goodxfe_ne", "servxeh_ne", "hcserv_ne", "core_pi", "goodxfe_pi", "servxeh_pi", "hcserv_pi")
+g5data <- get_haver_data(usnalist, rename_list = rename_list)
+
+#Find inflation, shares, and contributions
+components <- c("goodxfe", "servxeh", "hcserv")
+g5data <- g5data %>%
+  calc_infl() %>%
+  calc_shares(aggvar = "core") %>%
+  calc_contrib() %>%
+  calc_aggregate(aggvar = "core")
+
+
+
+g5diffwcore <- g5data %>%
+  mutate(year = format(date, "%Y")) %>%
+  group_by(year) %>%
+  summarize(
+    hcserv_pi = mean(hcserv_pi),
+    hcserv_expshare = mean(hcserv_expshare),
+    core_pi = mean(core_pi))
+
+write.dta(g5diffwcore, "C:/Users/g1sxh05/FRBC Dropbox/Shria Holla/KM_SH/Healthcare PCE/code/g5diffwcore.dta")
+
+```
+
+### Core PCE Inflation Decomposition
+```{r}
+# Prepare Data
+g5stacked <- prep_stacked_data(
+  data = g5data, 
+  contrib_cols = paste0(components, "_contrib"),
+  display_names = c(
+  "Goods excl Food & Energy",
+  "Services excl Energy & Healthcare", 
+  "Healthcare Services"
+  )
+)
+
+# Graph Full Date Range
+g5 <- plot_decomp(
+  data = g5stacked,
+
+  component_order = c(
+    "Healthcare Services",
+    "Services excl Energy & Healthcare",
+    "Goods excl Food & Energy"
+    ),
+
+  colors = c(
+    "Healthcare Services" = "darkorange",
+    "Services excl Energy & Healthcare" = "forestgreen",
+    "Goods excl Food & Energy" = "darkblue"
+  ),
+
+  title = "Core PCE Inflation Decomposition"
+)
+
+print(g5)
+save_plot(g5, "core_infl_decomp.png")
+```
+
+
+### Graph Share of Core PCE Inflation Contributed by Healthcare Services, Monthly
+```{r}
+# Prep Data
+g5m <- g5data %>%
+  mutate(hcserv_contrib_share = (hcserv_contrib/core_infl_est)*100)
+
+g5msave <- select(g5m, date, core_infl_est, hcserv_contrib, hcserv_contrib_share)
+write.csv(g5msave, file = "hcserv_infl_core_infl_share.csv", row.names = FALSE)
+
+
+#Graph
+g5m_share <- plot_line(
+  data = g5m,
+  y_cols = list(
+    "Share" = "hcserv_contrib_share"
+  ),
+  colors = c(
+    "Share" = "darkorange"
+  ),
+  title = "Share of Core PCE Inflation Contributed by Healthcare Services\nMonthly",
+  y_label = "Percent (%)",
+  show_legend = FALSE,
+)
+
+print(g5m_share)
+save_plot(g5m_share, "hcserv_infl_share_core_infl.png")
+```
+
+### Graph Share of Core PCE Inflation Contributed by Healthcare Services, Annual
+```{r}
+#Annual
+## SH26 have to make this automatic! hard coded the dates!
+g5a <- g5data %>%
+  mutate(year = format(date, "%Y"),
+         hcserv_contrib_share = (hcserv_contrib/core_infl_est)*100) %>%
+  group_by(year) %>%
+  summarize(yrlyshare = mean(hcserv_contrib_share))
+
+g5a_share <- plot_line_year(
+  data = g5a,
+  x_col = "year",
+  y_cols = list(
+    "Share" = "yrlyshare"
+  ),
+  colors = c(
+    "Share" = "darkorange"
+  ),
+  title = "Share of Core PCE Inflation Contributed by Healthcare Services Inflation\nAnnual",
+  y_label = "Percent (%)",
+  show_legend = FALSE,
+  x_breaks = c(seq(1960, 2024, by = 2), 2026),
+  start_date = 1960
+  
+)
+
+print(g5a_share)
+save_plot(g5a_share, "hcserv_infl_share_core_infl_annual.png")
+```
+
+### Clean Up G5 Values
+```{r}
+rm(g5, g5data, g5a, g5m, g5stacked, g5m_share, g5msave, g5a_share, components, contrib_cols, display_names)
+```
+
+
+
+##################################################################################################################################################################################################################################
+## (6) Overall PCE Inflation Decomposition
+
+```{r}
+# Pull In Data
+usnalist <- c("cm","ctgm", "csm", "csdm", "jcm", "jctgm", "jcsm", "jcsdm")
+rename_list <- c("ov_ne", "good_ne", "serv_ne", "hcserv_ne", "ov_pi", "good_pi", "serv_pi", "hcserv_pi")
+g6data <- get_haver_data(usnalist, rename_list = rename_list)
+
+#Find inflation, shares, and contributions
+components <- c("good", "serv", "hcserv")
+g6data <- g6data %>%
+  calc_infl() %>%
+  calc_shares(aggvar = "ov") %>%
+  calc_contrib()
+
+#Calculate Contribution of Services w/out Healthcare Services
+g6data$servxh_contrib <- g6data$serv_contrib - g6data$hcserv_contrib
+
+#Aggregate contributions
+components <- c("good", "servxh", "hcserv")
+g6data <- calc_aggregate(g6data, aggvar = "ov")
+
+```
+
+
+### Graph Overall PCE Decomposition
+```{r}
+# Prepare Data
+g6stacked <- prep_stacked_data(
+  data = g6data, 
+  contrib_cols <- paste0(components, "_contrib"),
+  display_names <- c(
+  "Goods",
+  "Services excl Healthcare", 
+  "Healthcare Services"
+  )
+)
+
+#Plot Specifications
+g6plotspecs <- data.frame(
+  title = c(
+    "Overall PCE Inflation Decomposition",
+    "Overall PCE Inflation Decomposition since 2000"
+  ),
+  start_date = c(
+    NA, 
+    "2000-01-31"
+  ),
+  filename = c(
+    "ov_infl_decomp.png",
+    "ov_infl_decomp_2000.png"
+  )
+)
+
+#Graph
+for (i in 1:nrow(g6plotspecs)) {
+  g6 <- plot_decomp(
+    data = g6stacked,
+    component_order = c(
+      "Healthcare Services",
+      "Services excl Healthcare",
+      "Goods"
+    ),
+    colors = c(
+      "Healthcare Services" = "darkorange",
+      "Services excl Healthcare" = "forestgreen",
+      "Goods" = "darkblue"
+    ),
+    title = g6plotspecs$title[[i]],
+    start_date = if(!is.na(g6plotspecs$start_date[i])) as.Date(g6plotspecs$start_date[i]) else NULL 
+  )
+  print(g6)
+  save_plot(g6, g6plotspecs$filename[[i]])
+}
+
+```
+
+### Clean Up G6 Values
+```{r}
+rm(g6data, g6plotspecs, g6stacked, g6, components, contrib_cols, display_names)
+```
+
+
+
+##################################################################################################################################################################################################################################
+## (7) Graph Collection of Price Indexes
+
+```{r}
+
+# For PCE series
+pce_series <- data.frame(
+  code = c("jcsdm", "jcsdom", "jcsmpm", "jcsmdm", "jcsmom", "jcsmnm", "jcsmhpm", "jcsmhnm"),
+  name = c("hcserv", "opserv", "physerv", "dentserv", "paraserv", "hnserv", "hosp", "nurs"),
+  display = c("Healthcare Services", "Outpatient Services", "Physician Services", "Dental Services", "Paramedical Services", "Hospital and Nursing Home Services", "Hospital Services", "Nursing Home Services"),
+  color = c("blue", "green", "darkblue", "forestgreen", "darkorange", "deeppink", "purple", "firebrick")
+)
+
+
+pce_results <- plot_price_indices(
+  series_data = pce_series,
+  index_type = "PCE"
+)
+
+# For PPI series
+ppi_series <- data.frame(
+  code = c("r6211", "r6216", "r6215", "r622", "r6231"),
+  name = c("physerv", "hhcserv", "medlab", "hosp", "nurs"),
+  display = c("Offices of Physicians", "Home Health Care Services", "Medical and Diagnostic Labs", "Hospitals", "Nursing Care Facilities"),
+  color = c("darkblue", "darkorange", "darkorange", "purple", "firebrick")
+)
+
+
+ppi_results <- plot_price_indices(
+  series_data = ppi_series,
+  index_type = "PPI"  # Uses PPIR database
+)
+
+
+# For CPI series
+cpi_series <- data.frame(
+  code = c("umsptn", "umspsn"),
+  name = c("dentserv", "othmpserv"),
+  display = c("Dental Services", "Other Medical Professionals' Services"),
+  color = c("forestgreen", "darkorange")
+)
+
+cpi_results <- plot_price_indices(
+  series_data = cpi_series,
+  index_type = "CPI"  # Uses CPIDATA database
+)
+
+```
+
+#Clean Up G7 Values
+```{r}
+rm(cpi_results, cpi_series, pce_results, pce_series, ppi_results, ppi_series)
+```
+
+

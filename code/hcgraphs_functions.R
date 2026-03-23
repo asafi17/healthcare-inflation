@@ -927,7 +927,7 @@ plot_price_indices <- function(
 
 # Save plots with consistent settings using specific default path
 save_plot <- function(plot, filename, 
-                      path = "C:/Users/g1sxh05/FRBC Dropbox/Shria Holla/KM_SH/Healthcare PCE/graphs", 
+                      path = here::here("Healthcare PCE/graphs"), 
                       width = 10, height = 6, dpi = 300) {
   
   # Create the directory if it doesn't exist
