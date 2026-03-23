@@ -162,7 +162,7 @@ Same change!
 ### Summary
 
 |   | Laspeyres-style | Paasche-style | Interpretation |
-|------------------|------------------|------------------|------------------|
+|----|----|----|----|
 | Price Component | +2.3 | +2.4 | If consumers had kept their baskets fixed each period, the index would have risen by this much |
 | Weight Component | -0.4 | -0.5 | Consumers shifted toward Private insurance. This is the "substitution" effect. This partially offset price increases. |
 | **Total** | +1.9 | +1.9 | Total change in the price index between $t-k$ and $t$ |
@@ -170,7 +170,7 @@ Same change!
 ### Key Conceptual Differences
 
 | Type | Laspeyres | Paasche |
-|-------------------------------|---------------------|---------------------|
+|----|----|----|
 | Price effect evaluated at | Old weights | New weights |
 | Weight effect evaluated at | New prices | Old prices |
 | Emphasizes | What inflation *would have been* without behavioral change | What inflation *was experienced* given consumption behavior |
@@ -211,7 +211,7 @@ $$
 
 ## Industry-Based PPI
 
-### Producer Price Index (Monthly) 
+### Producer Price Index (Monthly)
 
 ```{r read-ppi}
 # read haver ppi 
@@ -248,8 +248,8 @@ DT::datatable(ppi, caption = 'Producer Price Index (Haver)',
 
 ```
 
-
 ### Producer Price Index (Annual)
+
 ```{r}
 # store ppi yearly by taking average 
 ppi_yearly = ppi |> 
@@ -284,7 +284,7 @@ ppi_yearly |>
 
 ```
 
-### Producer Price Index \% YoY Changes (Monthly) 
+### Producer Price Index % YoY Changes (Monthly)
 
 ```{r}
 ppi |>
@@ -318,8 +318,8 @@ DT::datatable(ppi, caption = 'Producer Price Index (Haver)',
 
 ```
 
+### Producer Price Index % YoY Change (Annual)
 
-### Producer Price Index \% YoY Change (Annual)
 ```{r}
 # store ppi yearly by taking average
 ppi_yearly |>
@@ -349,7 +349,7 @@ ppi_yearly |>
 
 ## Industry-Based Expenditure Shares
 
-### Download Data 
+### Download Data
 
 We will read the expenditure share data from the link [CMS NHEA](https://www.cms.gov/files/zip/nhe-tables.zip). Since the PCE Price Index does not publish expenditure shares by payer type, it is necessary to obtain weights from elsewhere. These will be found in the Center for Medicaid and Medicare Services (CMS) National Health Expenditure Accounts (NHEA) tables published online. You can find the relevant table at this link [CMS NHEA](https://www.cms.gov/files/zip/nhe-tables.zip). After downloading, we will read Table 7 which contains the expenditure shares by payer type. From this table, we will create the following variables:
 
@@ -492,7 +492,7 @@ DT::datatable(exp, caption = 'Hospital Expenditures (Billions)', rownames = F,
 rm(list = setdiff(ls(), c('exp', 'ppi', 'ppi_yearly')))
 ```
 
-### \% YoY Change in Total Expenditures by Payer-Type (Annual)
+### % YoY Change in Total Expenditures by Payer-Type (Annual)
 
 ```{r}
 
@@ -526,9 +526,7 @@ exp |>
                  by = 2))
 ```
 
-
 The expenditure data are annual here. We will change this to monthly data by creating a sequence of monthly dates from January 2000 to December 2024, storing the `year` of each month, and merging the annual expenditure data using this `year` variable.
-
 
 ### Total Expenditures by Payer-Type (Monthly)
 
@@ -564,7 +562,7 @@ exp_monthly |>
 
 ```
 
-### \% YoY Change in Total Expenditures by Payer-Type (Monthly)
+### % YoY Change in Total Expenditures by Payer-Type (Monthly)
 
 ```{r}
 
@@ -634,8 +632,7 @@ exp_monthly |>
   ) 
 ```
 
-
-### Expenditure Shares by Payer-Type \% YoY (Monthly)
+### Expenditure Shares by Payer-Type % YoY (Monthly)
 
 ```{r}
 exp_monthly |> 
@@ -670,8 +667,7 @@ exp_monthly |>
   ) 
 ```
 
-
-### Expenditure Shares by Payer-Type \% YoY (Annual)
+### Expenditure Shares by Payer-Type % YoY (Annual)
 
 ```{r}
 exp |> 
@@ -708,9 +704,7 @@ exp |>
   ) 
 ```
 
-
 ## Overall Hospital Inflation
-
 
 ### Monthly
 
@@ -852,8 +846,6 @@ inflation |>
 
 ```
 
-
-
 ```{r, fig.cap = 'Full Sample Partitioned Pairwise'}
 legend = c('Core PCE' = '#0073C2FF', 
            'Healthcare' = '#EFC000FF', 
@@ -909,8 +901,6 @@ inflation |>
     scale_color_manual(values = legend) 
 
 ```
-
-
 
 ### Annual
 
@@ -982,11 +972,9 @@ inflation_annual |>
 
 ```
 
-
 ## Industry Based Decomposition of Hospital Inflation (Monthly)
 
 ::: panel-tabset
-
 ### Laspeyres Decomposition by Weights and Prices
 
 ```{r}
@@ -1038,7 +1026,6 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
 
 
 ```
-
 
 ### Laspeyres Decomposition by Payer Type
 
@@ -1099,8 +1086,6 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
 
 ```
 
-
-
 ### Paasche Decomposition by Weights and Prices
 
 ```{r}
@@ -1157,9 +1142,6 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
 
 
 ```
-
-
-
 
 ### Paasche Decomposition by Payer Type
 
@@ -1219,16 +1201,13 @@ inner_join(exp_monthly_long, ppi_long, by = c('date', 'payerType')) |>
 
 
 ```
-
 :::
-
 
 ## Industry Based Decomposition of Hospital Inflation (Annual)
 
 We now decompose annual hospital inflation into price and weight components using the same Laspeyres and Paasche identities applied to the annual data. The lag is 1 year rather than 12 months. Each component is normalized by $P_{t-1}$ and multiplied by 100 so the contributions are in percentage points and sum to $\pi_t$.
 
 ::: panel-tabset
-
 ### Laspeyres Decomposition by Weights and Prices
 
 The Laspeyres decomposition evaluates price changes at prior-year weights and weight changes at current-year prices: $\Delta P_t^L = \sum_i w_{i,t-1} \Delta p_i + \sum_i \Delta w_i \, p_{i,t}$.
@@ -1290,7 +1269,6 @@ inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
 
 ```
 
-
 ### Laspeyres Decomposition by Payer Type
 
 Rather than splitting into price vs. weight, we aggregate each payer's total contribution (price + weight) to show how much of overall inflation is attributable to Medicare, Medicaid, and Private/Other.
@@ -1350,8 +1328,6 @@ inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
 
 
 ```
-
-
 
 ### Paasche Decomposition by Weights and Prices
 
@@ -1413,9 +1389,6 @@ inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
 
 ```
 
-
-
-
 ### Paasche Decomposition by Payer Type
 
 Same payer-level aggregation as the Laspeyres tab, but using the Paasche identity so that price effects are evaluated at current weights and weight effects at prior-year prices.
@@ -1471,30 +1444,26 @@ inner_join(exp_year_long, ppi_yearly_long, by = c('year', 'payerType')) |>
 
 
 ```
-
 :::
-
 
 ## Commodity-Based Hospital Inflation
 
-### Producer Price Index (PPI) 
+### Producer Price Index (PPI)
 
 In the commodity-based categorization of the PPI, there are categories for “Hospital outpatient care” and “Hospital inpatient care”, each of which have a subcategory for “General medical and surgical hospitals”. This subcategory for general hospitals has price indexes by payer type, just as detailed for the previous method. The overall categorization looks like:
 
-  I.	Hospital **outpatient** care    
-    a.	General medical and surgical hospitals    
-        i.	Medicare patients   
-        ii.	Medicaid patients   
-        iii.	Private insurance and all other patients    
-    
-  II.	Hospital **inpatient** care     
-      a.	General medical and surgical hospitals      
-        i.	Medicare patients     
-        ii.	Medicaid patients     
-        iii.	Private insurance and all other patients      
-    
-We need to aggregate the indexes of the same payer type to calculate the overall hospital services price index by that payer. 
+I.  Hospital **outpatient** care\
+    a. General medical and surgical hospitals
+    i.  Medicare patients\
+    ii. Medicaid patients\
+    iii. Private insurance and all other patients
+II. Hospital **inpatient** care\
+    a. General medical and surgical hospitals
+    i.  Medicare patients\
+    ii. Medicaid patients\
+    iii. Private insurance and all other patients
 
+We need to aggregate the indexes of the same payer type to calculate the overall hospital services price index by that payer.
 
 ```{r}
 rm(list=ls())
@@ -1547,7 +1516,7 @@ DT::datatable(ppi, caption = 'Commodity Based Producer Price Index',
               ))
 ```
 
-### Producer Price Index \% YoY (Monthly)
+### Producer Price Index % YoY (Monthly)
 
 ```{r}
 temp = ppi |> as.data.table()
@@ -1587,8 +1556,7 @@ apply(
 
 ```
 
-
-### Relative Importance Weights  
+### Relative Importance Weights
 
 ```{r}
 if (!dir.exists(here('data/bls')))  {
@@ -1721,8 +1689,7 @@ DT::datatable(weights, caption = 'Hospital Care Expenditures (Relative Importanc
 
 ```
 
-As before, we need to convert the annual relative importance weights to the monthly level. 
-
+As before, we need to convert the annual relative importance weights to the monthly level.
 
 ```{r}
 ri_monthly = data.frame(
@@ -1754,9 +1721,7 @@ DT::datatable(weights, caption = 'Hospital Care Expenditures (Relative Importanc
 
 ```
 
-
-
-### Compute Overall Hospital Inflation 
+### Compute Overall Hospital Inflation
 
 ```{r}
 # convert ppi to long format 
@@ -1838,11 +1803,9 @@ ind_infl |>
 
 ```
 
-
 ## Commodity Based Decomposition of Hospital Inflation
 
 ::: panel-tabset
-
 ### Laspeyres Decomposition by Weights and Prices
 
 ```{r}
@@ -1899,7 +1862,6 @@ inner_join(ri_monthly, ppi_long, by = c('date', 'payerType')) |>
 
 
 ```
-
 
 ### Laspeyres Decomposition by Payer Type
 
@@ -1966,8 +1928,6 @@ inner_join(ri_monthly, ppi_long, by = c('date', 'payerType')) |>
 
 ```
 
-
-
 ### Paasche Decomposition by Weights and Prices
 
 ```{r}
@@ -2022,9 +1982,6 @@ inner_join(ri_monthly, ppi_long, by = c('date', 'payerType')) |>
 
 
 ```
-
-
-
 
 ### Paasche Decomposition by Payer Type
 
@@ -2087,6 +2044,4 @@ inner_join(ri_monthly, ppi_long, by = c('date', 'payerType')) |>
 
 
 ```
-
 :::
-  
