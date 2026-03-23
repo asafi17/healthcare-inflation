@@ -61,67 +61,95 @@ This section checks the last available date for every Haver series used across t
 # --------------------------------------------------------------------------
 series_registry <- tribble(
   ~series_code,   ~database,   ~source_group, ~description,
+  
   # --- PCE Nominal Expenditures (USNA) ---
-  “cm”,           “USNA”,      “PCE”,         “Overall PCE NE”,
-  “cxfem”,        “USNA”,      “PCE”,         “Core PCE NE”,
-  “cgxfem”,       “USNA”,      “PCE”,         “Goods ex F&E NE”,
-  “csm”,          “USNA”,      “PCE”,         “Services NE”,
-  “csxhem”,       “USNA”,      “PCE”,         “Services ex E&HC NE”,
-  “csdm”,         “USNA”,      “PCE”,         “HC Services NE”,
-  “csdom”,        “USNA”,      “PCE”,         “Outpatient Services NE”,
-  “csmpm”,        “USNA”,      “PCE”,         “Physician Services NE”,
-  “csmdm”,        “USNA”,      “PCE”,         “Dental Services NE”,
-  “csmom”,        “USNA”,      “PCE”,         “Paramedical Services NE”,
-  “csmnm”,        “USNA”,      “PCE”,         “Home & Nursing NE”,
-  “csmhpm”,       “USNA”,      “PCE”,         “Hospital Services NE”,
-  “csmhnm”,       “USNA”,      “PCE”,         “Nursing Homes NE”,
-  “ctgm”,         “USNA”,      “PCE”,         “Total Goods NE”,
+  "cm",           "USNA",      "PCE",         "Overall PCE NE",
+  "cxfem",        "USNA",      "PCE",         "Core PCE NE",
+  "cgxfem",       "USNA",      "PCE",         "Goods ex F&E NE",
+  "csm",          "USNA",      "PCE",         "Services NE",
+  "csxhem",       "USNA",      "PCE",         "Services ex E&HC NE",
+  "csdm",         "USNA",      "PCE",         "HC Services NE",
+  "csdom",        "USNA",      "PCE",         "Outpatient Services NE",
+  "csmpm",        "USNA",      "PCE",         "Physician Services NE",
+  "csmdm",        "USNA",      "PCE",         "Dental Services NE",
+  "csmom",        "USNA",      "PCE",         "Paramedical Services NE",
+  "csmnm",        "USNA",      "PCE",         "Home & Nursing NE",
+  "csmhpm",       "USNA",      "PCE",         "Hospital Services NE",
+  "csmhnm",       "USNA",      "PCE",         "Nursing Homes NE",
+  "ctgm",         "USNA",      "PCE",         "Total Goods NE",
+  
   # --- PCE Price Indices (USNA) ---
-  “jcm”,          “USNA”,      “PCE”,         “Overall PCE PI”,
-  “jcxfem”,       “USNA”,      “PCE”,         “Core PCE PI”,
-  “jcgxfem”,      “USNA”,      “PCE”,         “Goods ex F&E PI”,
-  “jcsm”,         “USNA”,      “PCE”,         “Services PI”,
-  “jcsxhem”,      “USNA”,      “PCE”,         “Services ex E&HC PI”,
-  “jcsdm”,        “USNA”,      “PCE”,         “HC Services PI”,
-  “jcsdom”,       “USNA”,      “PCE”,         “Outpatient Services PI”,
-  “jcsmpm”,       “USNA”,      “PCE”,         “Physician Services PI”,
-  “jcsmdm”,       “USNA”,      “PCE”,         “Dental Services PI”,
-  “jcsmom”,       “USNA”,      “PCE”,         “Paramedical Services PI”,
-  “jcsmnm”,       “USNA”,      “PCE”,         “Home & Nursing PI”,
-  “jcsmhpm”,      “USNA”,      “PCE”,         “Hospital Services PI”,
-  “jcsmhnm”,      “USNA”,      “PCE”,         “Nursing Homes PI”,
-  “jctgm”,        “USNA”,      “PCE”,         “Total Goods PI”,
+  "jcm",          "USNA",      "PCE",         "Overall PCE PI",
+  "jcxfem",       "USNA",      "PCE",         "Core PCE PI",
+  "jcgxfem",      "USNA",      "PCE",         "Goods ex F&E PI",
+  "jcsm",         "USNA",      "PCE",         "Services PI",
+  "jcsxhem",      "USNA",      "PCE",         "Services ex E&HC PI",
+  "jcsdm",        "USNA",      "PCE",         "HC Services PI",
+  "jcsdom",       "USNA",      "PCE",         "Outpatient Services PI",
+  "jcsmpm",       "USNA",      "PCE",         "Physician Services PI",
+  "jcsmdm",       "USNA",      "PCE",         "Dental Services PI",
+  "jcsmom",       "USNA",      "PCE",         "Paramedical Services PI",
+  "jcsmnm",       "USNA",      "PCE",         "Home & Nursing PI",
+  "jcsmhpm",      "USNA",      "PCE",         "Hospital Services PI",
+  "jcsmhnm",      "USNA",      "PCE",         "Nursing Homes PI",
+  "jctgm",        "USNA",      "PCE",         "Total Goods PI",
+  
   # --- Core PCE (USECON) ---
-  “jcxfebm”,      “USECON”,    “PCE”,         “Core PCE PI (USECON)”,
+  "jcxfebm",      "USECON",    "PCE",         "Core PCE PI (USECON)",
+  
   # --- PPI Industry-Based (PPIR) ---
-  “r6211”,        “PPIR”,      “PPI”,         “PPI Offices of Physicians”,
-  “r6215”,        “PPIR”,      “PPI”,         “PPI Medical Labs”,
-  “r6216”,        “PPIR”,      “PPI”,         “PPI Home Health”,
-  “r622”,         “PPIR”,      “PPI”,         “PPI Hospitals”,
-  “r6231”,        “PPIR”,      “PPI”,         “PPI Nursing Facilities”,
-  “R62211A2”,     “PPIR”,      “PPI”,         “PPI Hospitals - Medicare”,
-  “R62211A4”,     “PPIR”,      “PPI”,         “PPI Hospitals - Medicaid”,
-  “R62211A6”,     “PPIR”,      “PPI”,         “PPI Hospitals - Private/Other”,
+  "r6211",        "PPIR",      "PPI",         "PPI Offices of Physicians",
+  "r6215",        "PPIR",      "PPI",         "PPI Medical Labs",
+  "r6216",        "PPIR",      "PPI",         "PPI Home Health",
+  "r622",         "PPIR",      "PPI",         "PPI Hospitals",
+  "r6231",        "PPIR",      "PPI",         "PPI Nursing Facilities",
+  "R62211A2",     "PPIR",      "PPI",         "PPI Hospitals - Medicare",
+  "R62211A4",     "PPIR",      "PPI",         "PPI Hospitals - Medicaid",
+  "R62211A6",     "PPIR",      "PPI",         "PPI Hospitals - Private/Other",
+  
   # --- PPI Commodity-Based (PPI) ---
-  “P512101B”,     “PPI”,       “PPI”,         “PPI Hospital Inpatient (Commodity)”,
-  “P512101C”,     “PPI”,       “PPI”,         “PPI Hospital Inpatient Medicare (Commodity)”,
-  “P512101D”,     “PPI”,       “PPI”,         “PPI Hospital Inpatient Medicaid (Commodity)”,
-  “P511104B”,     “PPI”,       “PPI”,         “PPI Hospital Outpatient (Commodity)”,
-  “P511104C”,     “PPI”,       “PPI”,         “PPI Hospital Outpatient Medicare (Commodity)”,
-  “P511104D”,     “PPI”,       “PPI”,         “PPI Hospital Outpatient Medicaid (Commodity)”,
+  "P512101B",     "PPI",       "PPI",         "PPI Hospital Inpatient (Commodity)",
+  "P512101C",     "PPI",       "PPI",         "PPI Hospital Inpatient Medicare (Commodity)",
+  "P512101D",     "PPI",       "PPI",         "PPI Hospital Inpatient Medicaid (Commodity)",
+  "P511104B",     "PPI",       "PPI",         "PPI Hospital Outpatient (Commodity)",
+  "P511104C",     "PPI",       "PPI",         "PPI Hospital Outpatient Medicare (Commodity)",
+  "P511104D",     "PPI",       "PPI",         "PPI Hospital Outpatient Medicaid (Commodity)",
+  
   # --- CPI (CPIDATA) ---
-  “umsptn”,       “CPIDATA”,   “CPI”,         “CPI Medical Care Services (NSA)”,
-  “umspsn”,       “CPIDATA”,   “CPI”,         “CPI Hospital Services (NSA)”
+  "umsptn",       "CPIDATA",   "CPI",         "CPI Medical Care Services (NSA)",
+  "umspsn",       "CPIDATA",   "CPI",         "CPI Hospital Services (NSA)"
 )
 
+DT::datatable(
+  series_registry,
+  caption = "Haver Codes",
+  colnames = c("Series Code", "Database", "Source Group", "Description"),
+  rownames = FALSE,
+  extensions = 'Buttons',
+  options = list(
+    # Added 'l' to dom to show the length menu
+    dom = 'Blfrtip', 
+    buttons = c('copy', 'csv', 'excel'),
+    # Sets the default number of rows to display
+    pageLength = 10, 
+    # Defines the options available in the dropdown
+    lengthMenu = list(c(10, 25, 50, -1), c('10', '25', '50', 'All'))
+  )
+)
+
+```
+
+
+```{r}
 # --------------------------------------------------------------------------
 # Pull each series and extract the last non-NA date
 # --------------------------------------------------------------------------
 get_end_date <- function(code, db) {
-  full_code <- paste0(code, “@”, db)
+  full_code <- paste0(code, "@", db)
   tryCatch({
-    d <- import_haver(series = full_code, eop = FALSE)
-    col <- setdiff(names(d), “date”)
+    d <- import_haver(series = full_code, eop = FALSE) |> 
+      na.omit()
+    col <- setdiff(names(d), "date")
     d <- d |> filter(!is.na(.data[[col[1]]]))
     if (nrow(d) == 0) return(as.Date(NA))
     max(d$date)
@@ -142,12 +170,12 @@ stale_threshold <- most_recent %m-% months(3)
 staleness <- staleness |>
   mutate(
     months_behind = as.numeric(
-      difftime(most_recent, end_date, units = “days”)
+      difftime(most_recent, end_date, units = "days")
     ) / 30.44,
     flag = case_when(
-      is.na(end_date)            ~ “MISSING”,
-      end_date <= stale_threshold ~ “STALE”,
-      TRUE                       ~ “OK”
+      is.na(end_date)            ~ "MISSING",
+      end_date <= stale_threshold ~ "STALE",
+      TRUE                       ~ "OK"
     )
   )
 ```
@@ -160,15 +188,15 @@ end_date_summary <- staleness |>
   group_by(source_group, end_date) |>
   summarise(
     n_series = n(),
-    series = paste(series_code, collapse = “, “),
-    .groups = “drop”
+    series = paste(series_code, collapse = ", "),
+    .groups = "drop"
   ) |>
   arrange(source_group, desc(end_date))
 
 DT::datatable(
   end_date_summary,
-  caption = “Series Count by End Date and Source”,
-  colnames = c(“Source”, “End Date”, “# Series”, “Series Codes”),
+  caption = "Series Count by End Date and Source",
+  colnames = c("Source", "End Date", "# Series", "Series Codes"),
   rownames = FALSE,
   extensions = 'Buttons',
   options = list(
@@ -181,23 +209,23 @@ DT::datatable(
 
 ### Stale or Missing Series
 
-Series that are 3+ months behind the most recent data date (`r format(most_recent, “%B %Y”)`) or that failed to load.
+Series that are 3+ months behind the most recent data date (`r format(most_recent, "%B %Y")`) or that failed to load.
 
 ```{r staleness-flagged}
 flagged <- staleness |>
-  filter(flag != “OK”) |>
+  filter(flag != "OK") |>
   select(source_group, series_code, database, description, end_date, months_behind, flag) |>
   arrange(flag, desc(months_behind))
 
 if (nrow(flagged) == 0) {
-  cat(“All series are current -- no investigation needed.”)
+  cat("All series are current -- no investigation needed.")
 } else {
   DT::datatable(
     flagged,
-    caption = paste0(“Series requiring investigation (threshold: “,
-                     format(stale_threshold, “%B %Y”), “)”),
-    colnames = c(“Source”, “Code”, “Database”, “Description”,
-                 “End Date”, “Months Behind”, “Status”),
+    caption = paste0("Series requiring investigation (threshold: ",
+                     format(stale_threshold, "%B %Y"), ")"),
+    colnames = c("Source", "Code", "Database", "Description",
+                 "End Date", "Months Behind", "Status"),
     rownames = FALSE,
     extensions = 'Buttons',
     options = list(
@@ -205,12 +233,12 @@ if (nrow(flagged) == 0) {
       buttons = c('copy', 'csv', 'excel')
     )
   ) |>
-    DT::formatRound(“months_behind”, digits = 1) |>
+    DT::formatRound("months_behind", digits = 1) |>
     DT::formatStyle(
-      “flag”,
+      "flag",
       backgroundColor = DT::styleEqual(
-        c(“STALE”, “MISSING”),
-        c(“#fff3cd”, “#f8d7da”)
+        c("STALE", "MISSING"),
+        c("#fff3cd", "#f8d7da")
       )
     )
 }
