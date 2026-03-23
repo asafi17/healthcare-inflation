@@ -237,6 +237,27 @@ DT::datatable(
 
 ## Healthcare Services Price Index Summary
 
+This section tracks headline healthcare services price indices from three major U.S. statistical programs. Each table reports the price index level, year-over-year (YoY) change, and month-over-month (MoM) change for the most recent four months and a trailing 12-month average. Because these series are released on different schedules, "Month $t$" reflects each source's own most recent available data.
+
+For a given price index $P_t$, the measures are computed as:
+
+$$
+\text{YoY}_t = \left(\frac{P_t}{P_{t-12}} - 1\right) \times 100
+$$
+
+$$
+\text{MoM}_t = \left(\frac{P_t}{P_{t-1}} - 1\right) \times 100
+$$
+
+The four headline series are:
+
+| Source | Haver Code | Description |
+|--------|------------|-------------|
+| PCE Price Index | `jcsdm@USNA` | Healthcare Services PCE Price Index (SA) |
+| CPI | `UMS@CPIDATA` | CPI-U Medical Care Services (SA) |
+| PPI Commodity | `P51@PPI` | PPI Healthcare Services, Commodity-Based (NSA) |
+| PPI Industry | `RHC@PPIR` | PPI Selected Health Care Industries, Industry-Based (SA) |
+
 ```{r summary-helper}
 # --------------------------------------------------------------------------
 # Helper: build a summary table for a single headline price index series
@@ -347,22 +368,46 @@ knitr::kable(ppi_ind$table, caption = ppi_ind$label, align = c("l", rep("r", 5))
 
 ## Healthcare Services Contribution to Core PCE Inflation
 
-This section measures how much of Core PCE inflation is attributable to healthcare services. Core PCE inflation can be decomposed into contributions from its three major components: 
+This section measures how much of Core PCE inflation is attributable to healthcare services. The approach follows Shria Holla's code in `healthcare_graphs.Rmd` (section 5).
 
-(i) goods excluding food & energy   
-(ii) services excluding energy & healthcare    
-(iii) healthcare services   
+Core PCE excludes food and energy and can be decomposed into three mutually exclusive components:
 
-Each component's contribution equals its expenditure share of Core PCE multiplied by its YoY inflation rate. The healthcare services contribution share is then that contribution divided by total estimated Core PCE inflation, expressed as a percentage.
+| Component | Haver NE Code | Haver PI Code | Description |
+|-----------|---------------|---------------|-------------|
+| Goods ex Food & Energy | `cgxfem@USNA` | `jcgxfem@USNA` | Core goods (excluding food and energy) |
+| Services ex Energy & Healthcare | `csxhem@USNA` | `jcsxhem@USNA` | Core services (excluding energy and healthcare) |
+| Healthcare Services | `csdm@USNA` | `jcsdm@USNA` | PCE healthcare services |
+| **Core PCE (aggregate)** | `cxfem@USNA` | `jcxfem@USNA` | Core PCE total |
 
-The approach follows Shria Holla's code in `healthcare_graphs.Rmd` (section 5). The steps are:
+For each component $i$, we first compute the **YoY inflation rate** from its price index $P_{i,t}$:
 
-1. Pull nominal expenditures and price indices for Core PCE and its three sub-components from Haver (all `@USNA`).
-2. Compute YoY inflation for each component: `((PI_t / PI_{t-12}) - 1) * 100`.
-3. Compute expenditure shares: each component's nominal expenditure divided by Core PCE nominal expenditure.
-4. Compute contributions: `share_i * inflation_i` for each component.
-5. Estimate total Core PCE inflation as the sum of all contributions.
-6. Healthcare's share of Core PCE inflation: `hcserv_contrib / core_infl_est * 100`.
+$$
+\pi_{i,t} = \left(\frac{P_{i,t}}{P_{i,t-12}} - 1\right) \times 100
+$$
+
+Next, we compute each component's **expenditure share** of Core PCE using nominal expenditures ($NE$):
+
+$$
+w_{i,t} = \frac{NE_{i,t}}{NE_{core,t}}
+$$
+
+Each component's **contribution** to Core PCE inflation (in percentage points) is the product of its share and its inflation rate:
+
+$$
+C_{i,t} = w_{i,t} \times \pi_{i,t}
+$$
+
+**Estimated Core PCE inflation** is the sum of all component contributions:
+
+$$
+\hat{\pi}_{core,t} = C_{goodxfe,t} + C_{servxeh,t} + C_{hcserv,t}
+$$
+
+Finally, **healthcare's share of Core PCE inflation** expresses healthcare's contribution as a percentage of the total:
+
+$$
+S_{hcserv,t} = \frac{C_{hcserv,t}}{\hat{\pi}_{core,t}} \times 100
+$$
 
 ```{r core-pce-contribution}
 # --------------------------------------------------------------------------
