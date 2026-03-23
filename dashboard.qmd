@@ -161,7 +161,7 @@ staleness <- staleness |>
 # --------------------------------------------------------------------------
 staleness_display <- staleness |>
   select(source_group, series_code, database, description, end_date, status) |>
-  arrange(source_group, series_code)
+  arrange(status, source_group, series_code)
 
 DT::datatable(
   staleness_display,
