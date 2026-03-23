@@ -345,3 +345,180 @@ ppi_ind <- build_summary_table("RHC", "PPIR", "PPI Selected Health Care Industri
 knitr::kable(ppi_ind$table, caption = ppi_ind$label, align = c("l", rep("r", 5)))
 ```
 
+## Healthcare Services Contribution to Core PCE Inflation
+
+This section measures how much of Core PCE inflation is attributable to healthcare services. Core PCE inflation can be decomposed into contributions from its three major components: goods excluding food & energy, services excluding energy & healthcare, and healthcare services. Each component's contribution equals its expenditure share of Core PCE multiplied by its YoY inflation rate. The healthcare services contribution share is then that contribution divided by total estimated Core PCE inflation, expressed as a percentage.
+
+The approach follows Shria Holla's code in `healthcare_graphs.Rmd` (section 5). The steps are:
+
+1. Pull nominal expenditures and price indices for Core PCE and its three sub-components from Haver (all `@USNA`).
+2. Compute YoY inflation for each component: `((PI_t / PI_{t-12}) - 1) * 100`.
+3. Compute expenditure shares: each component's nominal expenditure divided by Core PCE nominal expenditure.
+4. Compute contributions: `share_i * inflation_i` for each component.
+5. Estimate total Core PCE inflation as the sum of all contributions.
+6. Healthcare's share of Core PCE inflation: `hcserv_contrib / core_infl_est * 100`.
+
+```{r core-pce-contribution}
+# --------------------------------------------------------------------------
+# Step 1: Pull nominal expenditures and price indices from Haver
+# --------------------------------------------------------------------------
+# Core PCE is decomposed into three components:
+#   - goodxfe: Goods excluding Food & Energy
+#   - servxeh: Services excluding Energy & Healthcare
+#   - hcserv:  Healthcare Services
+#
+# For each we need nominal expenditures (NE) to compute shares,
+# and price indices (PI) to compute inflation rates.
+
+core_data <- import_haver(
+  series = c(
+    "cxfem@USNA",   # Core PCE NE
+    "cgxfem@USNA",  # Goods ex F&E NE
+    "csxhem@USNA",  # Services ex E&HC NE
+    "csdm@USNA",    # HC Services NE
+    "jcxfem@USNA",  # Core PCE PI
+    "jcgxfem@USNA", # Goods ex F&E PI
+    "jcsxhem@USNA", # Services ex E&HC PI
+    "jcsdm@USNA"    # HC Services PI
+  ),
+  eop = FALSE
+) |>
+  rename(
+    core_ne    = cxfem,
+    goodxfe_ne = cgxfem,
+    servxeh_ne = csxhem,
+    hcserv_ne  = csdm,
+    core_pi    = jcxfem,
+    goodxfe_pi = jcgxfem,
+    servxeh_pi = jcsxhem,
+    hcserv_pi  = jcsdm
+  ) |>
+  arrange(date)
+
+# --------------------------------------------------------------------------
+# Step 2: Compute YoY inflation for each component
+# --------------------------------------------------------------------------
+# YoY inflation = ((PI_t / PI_{t-12}) - 1) * 100
+# This gives the percentage change in prices over the past 12 months.
+
+components <- c("core", "goodxfe", "servxeh", "hcserv")
+
+for (comp in components) {
+  pi_col   <- paste0(comp, "_pi")
+  infl_col <- paste0(comp, "_infl")
+  core_data <- core_data |>
+    mutate(!!infl_col := ((get(pi_col) / lag(get(pi_col), 12)) - 1) * 100)
+}
+
+# --------------------------------------------------------------------------
+# Step 3: Compute expenditure shares relative to Core PCE
+# --------------------------------------------------------------------------
+# Each component's share = its nominal expenditure / Core PCE nominal expenditure.
+# These shares reflect how much of Core PCE spending goes to each category.
+
+for (comp in c("goodxfe", "servxeh", "hcserv")) {
+  ne_col    <- paste0(comp, "_ne")
+  share_col <- paste0(comp, "_expshare")
+  core_data <- core_data |>
+    mutate(!!share_col := get(ne_col) / core_ne)
+}
+
+# --------------------------------------------------------------------------
+# Step 4: Compute contributions (share * inflation)
+# --------------------------------------------------------------------------
+# A component's contribution to aggregate inflation = its expenditure share
+# multiplied by its own inflation rate. This tells us how many percentage
+# points of Core PCE inflation are driven by each component.
+
+for (comp in c("goodxfe", "servxeh", "hcserv")) {
+  infl_col    <- paste0(comp, "_infl")
+  share_col   <- paste0(comp, "_expshare")
+  contrib_col <- paste0(comp, "_contrib")
+  core_data <- core_data |>
+    mutate(!!contrib_col := get(share_col) * get(infl_col))
+}
+
+# --------------------------------------------------------------------------
+# Step 5: Estimate total Core PCE inflation from contributions
+# --------------------------------------------------------------------------
+# Summing the three contributions gives an estimate of Core PCE inflation.
+# This should closely match the directly computed core_infl.
+
+core_data <- core_data |>
+  mutate(core_infl_est = goodxfe_contrib + servxeh_contrib + hcserv_contrib)
+
+# --------------------------------------------------------------------------
+# Step 6: Healthcare's share of Core PCE inflation
+# --------------------------------------------------------------------------
+# What percentage of total Core PCE inflation is attributable to healthcare?
+# hcserv_contrib_share = (hcserv_contrib / core_infl_est) * 100
+
+core_data <- core_data |>
+  mutate(hcserv_contrib_share = (hcserv_contrib / core_infl_est) * 100)
+```
+
+### Summary Table
+
+This table displays healthcare services' contribution to Core PCE inflation for the most recent months and a 12-month trailing average. The "Contribution (pp)" row shows how many percentage points of Core PCE inflation come from healthcare services. The "Share of Core PCE Inflation (%)" row shows healthcare's contribution as a percentage of total Core PCE inflation.
+
+```{r core-pce-table}
+# --------------------------------------------------------------------------
+# Build the summary table for the same time periods as the other tables
+# --------------------------------------------------------------------------
+contrib_data <- core_data |>
+  filter(!is.na(hcserv_contrib_share) & !is.na(core_infl_est)) |>
+  select(date, core_infl_est, hcserv_contrib, hcserv_contrib_share)
+
+recent <- contrib_data |> slice_tail(n = 4)
+trailing_12 <- contrib_data |> slice_tail(n = 12)
+
+col_labels <- c(
+  format(recent$date[4], "%b %Y"),
+  format(recent$date[3], "%b %Y"),
+  format(recent$date[2], "%b %Y"),
+  format(recent$date[1], "%b %Y"),
+  "12-Mo Avg"
+)
+
+contrib_tbl <- data.frame(
+  Measure = c(
+    "Core PCE Inflation (%, est.)",
+    "HC Services Contribution (pp)",
+    "Share of Core PCE Inflation (%)"
+  ),
+  t0 = c(
+    round(recent$core_infl_est[4], 2),
+    round(recent$hcserv_contrib[4], 2),
+    round(recent$hcserv_contrib_share[4], 2)
+  ),
+  t1 = c(
+    round(recent$core_infl_est[3], 2),
+    round(recent$hcserv_contrib[3], 2),
+    round(recent$hcserv_contrib_share[3], 2)
+  ),
+  t2 = c(
+    round(recent$core_infl_est[2], 2),
+    round(recent$hcserv_contrib[2], 2),
+    round(recent$hcserv_contrib_share[2], 2)
+  ),
+  t3 = c(
+    round(recent$core_infl_est[1], 2),
+    round(recent$hcserv_contrib[1], 2),
+    round(recent$hcserv_contrib_share[1], 2)
+  ),
+  avg = c(
+    round(mean(trailing_12$core_infl_est), 2),
+    round(mean(trailing_12$hcserv_contrib), 2),
+    round(mean(trailing_12$hcserv_contrib_share), 2)
+  )
+)
+
+names(contrib_tbl) <- c("Measure", col_labels)
+
+knitr::kable(
+  contrib_tbl,
+  caption = "Healthcare Services Contribution to Core PCE Inflation (cxfem, cgxfem, csxhem, csdm, jcxfem, jcgxfem, jcsxhem, jcsdm @USNA)",
+  align = c("l", rep("r", 5))
+)
+```
+
