@@ -49,7 +49,6 @@ theme_set(
 
 ```
 
-
 ## Data Staleness Monitor
 
 This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. Series whose end date matches the most recent available month are highlighted in green; those between the most recent and the 3-month stale cutoff are in yellow; and those past the cutoff (or missing entirely) are in red.
@@ -221,7 +220,7 @@ DT::datatable(
     scrollY = T,
     dom = 'Blfrtip',
     buttons = c('copy', 'csv', 'excel'),
-    pageLength = -1,
+    pageLength = 10,
     lengthMenu = list(c(10, 25, 50, -1), c('10', '25', '50', 'All'))
   )
 ) |>
@@ -252,7 +251,7 @@ $$
 The four headline series are:
 
 | Source | Haver Code | Description |
-|--------|------------|-------------|
+|------------------|--------------------------|----------------------------|
 | PCE Price Index | `jcsdm@USNA` | Healthcare Services PCE Price Index (SA) |
 | CPI | `UMS@CPIDATA` | CPI-U Medical Care Services (SA) |
 | PPI Commodity | `P51@PPI` | PPI Healthcare Services, Commodity-Based (NSA) |
@@ -373,7 +372,7 @@ This section measures how much of Core PCE inflation is attributable to healthca
 Core PCE excludes food and energy and can be decomposed into three mutually exclusive components:
 
 | Component | Haver NE Code | Haver PI Code | Description |
-|-----------|---------------|---------------|-------------|
+|-----------------|-------------------|-------------------|-----------------|
 | Goods ex Food & Energy | `cgxfem@USNA` | `jcgxfem@USNA` | Core goods (excluding food and energy) |
 | Services ex Energy & Healthcare | `csxhem@USNA` | `jcsxhem@USNA` | Core services (excluding energy and healthcare) |
 | Healthcare Services | `csdm@USNA` | `jcsdm@USNA` | PCE healthcare services |
@@ -572,4 +571,3 @@ knitr::kable(
   align = c("l", rep("r", 5))
 )
 ```
-
