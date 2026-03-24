@@ -71,11 +71,14 @@ series_registry <- tribble(
   "csmpm",        "USNA",      "PCE",         "Healthcare Services: Physician Services NE",
   "csmdm",        "USNA",      "PCE",         "Healthcare Services: Dental Services NE",
   "csmom",        "USNA",      "PCE",         "Healthcare Services: Paramedical Services NE",
-  "csmnm",        "USNA",      "PCE",         "Healthcare Services: Paramedical: Home & Nursing NE",
+  "csmnm",        "USNA",      "PCE",         "Healthcare Services: Paramedical: Home Health Care NE",
+  "csmolm",       "USNA",      "PCE",         "Healthcare Services: Paramedical: Medical Laboratories NE", 
+  "csmoom",       "USNA",      "PCE",         "Healthcare Services: Paramedical: Other Professional Medical Services NE",
   "csmhpm",       "USNA",      "PCE",         "Healthcare Services: Hospital Services NE",
   "csmhnm",       "USNA",      "PCE",         "Healthcare Services: Nursing Homes NE",
   "ctgm",         "USNA",      "PCE",         "Total Goods NE",
-  
+  "csmoa",        "USNA",      "PCE",         "Healthcare Services: Paramedical Services",
+
   # --- PCE Price Indices (USNA) --- (seasonally adjusted= SA)
   "jcm",          "USNA",      "PCE",         "Overall PCE PI",
   "jcxfem",       "USNA",      "PCE",         "Core PCE PI (ex F&E)",
@@ -113,7 +116,6 @@ series_registry <- tribble(
   
   # --- PPI Commodity-Based (PPI) --- (only pulling NSA because it's the most available)
   "P51",          "PPI",       "PPI",         "PPI Healthcare Services (Commodity)",
-  
   "P511",         "PPI",       "PPI",         "PPI Healthcare Services: Outpatient (Commodity)", 
   "P511104B",     "PPI",       "PPI",         "PPI Healthcare Services: Outpatient: Hospital: Medicare (Commodity)",
   "P511104C",     "PPI",       "PPI",         "PPI Healthcare Services: Outpatient: Hospital: Medicaid (Commodity)",
