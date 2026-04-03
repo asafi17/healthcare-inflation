@@ -29,7 +29,7 @@ pacman::p_load(here,
                readxl,
                fredr)
 
-# set theme 
+# set theme
 theme_set(
   theme_minimal() +
     theme(
@@ -47,193 +47,6 @@ theme_set(
     )
 )
 
-```
-
-## Data Staleness Monitor
-
-This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. Series whose end date matches the most recent available month are highlighted in green; those between the most recent and the 3-month stale cutoff are in yellow; and those past the cutoff (or missing entirely) are in red.
-
-```{r staleness-monitor}
-# --------------------------------------------------------------------------
-# Define all Haver series used across the project, grouped by source
-# --------------------------------------------------------------------------
-series_registry <- tribble(
-  ~series_code,   ~database,   ~source_group, ~description,
-  
-  # --- PCE Nominal Expenditures (USNA) --- (SA, Mil$). NE = nominal expenditures
-  "cm",           "USNA",      "PCE",         "Overall PCE NE",
-  "cxfem",        "USNA",      "PCE",         "Core PCE NE",
-  "cgxfem",       "USNA",      "PCE",         "Goods ex F&E NE",
-  "csm",          "USNA",      "PCE",         "Services NE",
-  "csxhem",       "USNA",      "PCE",         "Services ex E&HC NE",
-  "csdm",         "USNA",      "PCE",         "Healthcare Services NE",
-  "csdom",        "USNA",      "PCE",         "Healthcare Services: Outpatient Services NE",
-  "csmpm",        "USNA",      "PCE",         "Healthcare Services: Physician Services NE",
-  "csmdm",        "USNA",      "PCE",         "Healthcare Services: Dental Services NE",
-  "csmom",        "USNA",      "PCE",         "Healthcare Services: Paramedical Services NE",
-  "csmnm",        "USNA",      "PCE",         "Healthcare Services: Paramedical: Home Health Care NE",
-  "csmolm",       "USNA",      "PCE",         "Healthcare Services: Paramedical: Medical Laboratories NE", 
-  "csmoom",       "USNA",      "PCE",         "Healthcare Services: Paramedical: Other Professional Medical Services NE",
-  "csmhpm",       "USNA",      "PCE",         "Healthcare Services: Hospital Services NE",
-  "csmhnm",       "USNA",      "PCE",         "Healthcare Services: Nursing Homes NE",
-  "ctgm",         "USNA",      "PCE",         "Total Goods NE",
-  "csmoa",        "USNA",      "PCE",         "Healthcare Services: Paramedical Services",
-
-  # --- PCE Price Indices (USNA) --- (seasonally adjusted= SA)
-  "jcm",          "USNA",      "PCE",         "Overall PCE PI",
-  "jcxfem",       "USNA",      "PCE",         "Core PCE PI (ex F&E)",
-  "jcgxfem",      "USNA",      "PCE",         "Goods ex F&E PCE PI",
-  "jcsm",         "USNA",      "PCE",         "Services PCE PI",
-  "jcsxhem",      "USNA",      "PCE",         "Services ex E&HC PCE PI",
-  "jcsdm",        "USNA",      "PCE",         "Healthcare Services PCE PI",
-  "jcsdom",       "USNA",      "PCE",         "Outpatient Services PCE PI",
-  "jcsmpm",       "USNA",      "PCE",         "Physician Services PCE PI",
-  "jcsmdm",       "USNA",      "PCE",         "Dental Services PCE PI",
-  "jcsmom",       "USNA",      "PCE",         "Paramedical Services PCE PI",
-  "jcsmnm",       "USNA",      "PCE",         "Home & Nursing PCE PI",
-  "jcsmhpm",      "USNA",      "PCE",         "Hospital Services PCE PI",
-  "jcsmhnm",      "USNA",      "PCE",         "Nursing Homes PCE PI",
-  "jctgm",        "USNA",      "PCE",         "Total Goods PCE PI",
-  
-  # --- Core PCE (USECON) --- (SA)
-  "jcxfebm",      "USECON",    "PCE",         "Core PCE PI (USECON)",
-  
-  # --- PPI Industry-Based (PPIR) --- (appear to be SA)
-  "RHC",          "PPIR",      "PPI",         "PPI Selected Health Care Industries",
-  "R6211",        "PPIR",      "PPI",         "PPI Offices of Physicians",
-  "R6212",        "PPIR",      "PPI",         "PPI Offices of Dentists", 
-  "R6215",        "PPIR",      "PPI",         "PPI Medical & Diagnostic Labs",
-  "R6216",        "PPIR",      "PPI",         "PPI Home Health",
-  "R621991",      "PPIR",      "PPI",         "PPI Blood and Organ Banks", 
-  "R622",         "PPIR",      "PPI",         "PPI Hospitals",
-  "R6231",        "PPIR",      "PPI",         "PPI Nursing Facilities",
-  "R62321",       "PPIR",      "PPI",         "PPI Residential Developmental Disability Homes", 
-  
-  # special index (table 11) (NSA)
-  "R62211A2",     "PPIR",      "PPI",         "PPI Hospitals - Medicare",
-  "R62211A4",     "PPIR",      "PPI",         "PPI Hospitals - Medicaid",
-  "R62211A6",     "PPIR",      "PPI",         "PPI Hospitals - Private/Other",
-  
-  # --- PPI Commodity-Based (PPI) --- (only pulling NSA because it's the most available)
-  "P51",          "PPI",       "PPI",         "PPI Healthcare Services (Commodity)",
-  "P511",         "PPI",       "PPI",         "PPI Healthcare Services: Outpatient (Commodity)", 
-  "P511104B",     "PPI",       "PPI",         "PPI Healthcare Services: Outpatient: Hospital: Medicare (Commodity)",
-  "P511104C",     "PPI",       "PPI",         "PPI Healthcare Services: Outpatient: Hospital: Medicaid (Commodity)",
-  "P511104D",     "PPI",       "PPI",         "PPI Healthcare Services: Outpatient: Hospital: Private/All Other (Commodity)",
-  
-  "P512",         "PPI",       "PPI",         "PPI Healthcare Services: Inpatient (Commodity)",
-  "P512101B",     "PPI",       "PPI",         "PPI Healthcare Services: Inpatient: Hospital: Medicare (Commodity)",
-  "P512101C",     "PPI",       "PPI",         "PPI Healthcare Services: Inpatient: Hospital: Medicaid (Commodity)",
-  "P512101D",     "PPI",       "PPI",         "PPI Healthcare Services: Inpatient: Hospital: Private/All Other (Commodity)",
-  
-  # --- CPI (CPIDATA) ---
-  "UM",           "CPIDATA",   "CPI",         "CPI-U Medical Care (SA)", 
-  "UMC",          "CPIDATA",   "CPI",         "CPI-U Medical Care Commodities (SA)", 
-  "UMG",          "CPIDATA",   "CPI",         "CPI-U Medicinal Drugs (SA)",
-  "UMP",          "CPIDATA",   "CPI",         "CPI-U Prescription Drugs (SA)", 
-  "UMGNA",        "CPIDATA",   "CPI",         "CPI-U Nonprescription Drugs (SA)", 
-  "UMS",          "CPIDATA",   "CPI",         "CPI-U Medicare Services (SA)",
-  "UMSPP",        "CPIDATA",   "CPI",         "CPI-U Physicians' Services (SA)",
-  "UMSPT",        "CPIDATA",   "CPI",         "CPI-U Dental Services (SA)", 
-  "UMSPE",        "CPIDATA",   "CPI",         "CPI-U Eyeglasses & Eyecare (SA)", 
-  "UMSPS",        "CPIDATA",   "CPI",         "CPI-U Services by Other Medical Professionals (SA)", 
-  "UMSH",         "CPIDATA",   "CPI",         "CPI-U Hospital and Related Services (SA)", 
-  "UMSHS",        "CPIDATA",   "CPI",         "CPI-U Hospital Services (SA)", 
-  "UMSHSI",       "CPIDATA",   "CPI",         "CPI-U Inpatient Hospital Services (SA)", 
-  "UMSHSO",       "CPIDATA",   "CPI",         "CPI-U Outpatient Hospital Services (SA)", 
-  "UMSNS",        "CPIDATA",   "CPI",         "CPI-U Nursing Homes and Adult Daycare (SA)", 
-  # Not seasonally adjusted 
-  "UMN",          "CPIDATA",   "CPI",         "CPI-U Medical Care (NSA)",
-  "UMCN",         "CPIDATA",   "CPI",         "CPI-U Medical Care Commodities (NSA)", 
-  "UMGN",         "CPIDATA",   "CPI",         "CPI-U Medicinal Drugs (NSA)",
-  "UMPN",         "CPIDATA",   "CPI",         "CPI-U Prescription Drugs (NSA)", 
-  "UMGNN",        "CPIDATA",   "CPI",         "CPI-U Nonprescription Drugs (NSA)", 
-  "UMQN",         "CPIDATA",   "CPI",         "CPI-U Medical Equipment and Supplies (NSA)",
-  "UMSN",         "CPIDATA",   "CPI",         "CPI-U Medical Care Services (NSA)", 
-  "UMSPN",        "CPIDATA",   "CPI",         "CPI-U Professional Medical Care Services (NSA)", 
-  "UMSPPN",       "CPIDATA",   "CPI",         "CPI-U Physicians' Services (NSA)", 
-  "UMSPTN",       "CPIDATA",   "CPI",         "CPI-U Dental Services (NSA)", 
-  "UMSPEN",       "CPIDATA",   "CPI",         "CPI-U Eyeglasses and Eye Care (NSA)", 
-  "UMSPSN",       "CPIDATA",   "CPI",         "CPI-U Services by Other Medical Professionals (NSA)", 
-  "UMSHN",        "CPIDATA",   "CPI",         "CPI-U Hospital and Related Services (NSA)", 
-  "UMSHSN",       "CPIDATA",   "CPI",         "CPI-U Hospital Services (NSA)", 
-  "UMSHSIN",      "CPIDATA",   "CPI",         "CPI-U Inpatient Hospital Services (NSA)", 
-  "UMSHSON",      "CPIDATA",   "CPI",         "CPI-U Outpatient Hospital Services (NSA)", 
-  "UMSNSN",       "CPIDATA",   "CPI",         "CPI-U Nursing Homes and Adult Daycare (NSA)", 
-  "UOEECN",       "CPIDATA",   "CPI",         "CPI-U Home Health Care", 
-  "UMSIN",        "CPIDATA",   "CPI",         "CPI-U Health Insurance"
-)
-
-# --------------------------------------------------------------------------
-# Pull each series and extract the last non-NA date
-# --------------------------------------------------------------------------
-get_end_date <- function(code, db) {
-  full_code <- paste0(code, "@", db)
-  tryCatch({
-    d <- import_haver(series = full_code, eop = FALSE) |>
-      na.omit()
-    col <- setdiff(names(d), "date")
-    d <- d |> filter(!is.na(.data[[col[1]]]))
-    if (nrow(d) == 0) return(as.Date(NA))
-    max(d$date)
-  }, error = function(e) as.Date(NA))
-}
-
-staleness <- series_registry |>
-  rowwise() |>
-  mutate(end_date = get_end_date(series_code, database)) |>
-  ungroup()
-
-# --------------------------------------------------------------------------
-# Determine the most recent end date and flag stale series
-# --------------------------------------------------------------------------
-most_recent <- max(staleness$end_date, na.rm = TRUE)
-stale_threshold <- most_recent %m-% months(3)
-
-staleness <- staleness |>
-  mutate(
-    status = case_when(
-      is.na(end_date)            ~ "Missing",
-      end_date == most_recent    ~ "Current",
-      end_date > stale_threshold ~ "Behind",
-      TRUE                       ~ "Stale"
-    )
-  )
-
-# --------------------------------------------------------------------------
-# Single color-coded table for all series
-# --------------------------------------------------------------------------
-staleness_display <- staleness |>
-  select(source_group, series_code, database, description, end_date, status) |>
-  arrange(status, source_group, series_code)
-
-DT::datatable(
-  staleness_display,
-  caption = paste0(
-    "Series Staleness Monitor (most recent: ",
-    format(most_recent, "%B %Y"),
-    " | stale cutoff: ",
-    format(stale_threshold, "%B %Y"), ")"
-  ),
-  colnames = c("Source", "Code", "Database", "Description", "End Date", "Status"),
-  rownames = FALSE,
-  extensions = 'Buttons',
-  options = list(
-    scrollY = T,
-    dom = 'Blfrtip',
-    buttons = c('copy', 'csv', 'excel'),
-    pageLength = 10,
-    lengthMenu = list(c(10, 25, 50, -1), c('10', '25', '50', 'All'))
-  )
-) |>
-  DT::formatStyle(
-    "status",
-    target = "row",
-    backgroundColor = DT::styleEqual(
-      c("Current", "Behind", "Stale", "Missing"),
-      c("#d4edda", "#fff3cd", "#f8d7da", "#f8d7da")
-    )
-  )
 ```
 
 ## Healthcare Services Price Index Summary
@@ -286,10 +99,11 @@ build_summary_table <- function(series_code, database, label) {
     filter(!is.na(yoy), date <= latest_date) |>
     slice_tail(n = 4)
 
-  # 12-month average (trailing 12 months ending at latest_date)
+  # 12-month average (t-1 to t-13, excluding the most recent month)
   trailing_12 <- d |>
     filter(!is.na(yoy), date <= latest_date) |>
-    slice_tail(n = 12)
+    slice_tail(n = 13) |>
+    slice_head(n = 12)
 
   avg_pi  <- mean(trailing_12$pi)
   avg_yoy <- mean(trailing_12$yoy)
@@ -522,7 +336,7 @@ contrib_data <- core_data |>
   select(date, core_infl_est, hcserv_contrib, hcserv_contrib_share)
 
 recent <- contrib_data |> slice_tail(n = 4)
-trailing_12 <- contrib_data |> slice_tail(n = 12)
+trailing_12 <- contrib_data |> slice_tail(n = 13) |> slice_head(n = 12)
 
 col_labels <- c(
   format(recent$date[4], "%b %Y"),
@@ -572,4 +386,193 @@ knitr::kable(
   caption = "Healthcare Services Contribution to Core PCE Inflation (cxfem, cgxfem, csxhem, csdm, jcxfem, jcgxfem, jcsxhem, jcsdm @USNA)",
   align = c("l", rep("r", 5))
 )
+```
+
+## Data Staleness Monitor
+
+This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. Series whose end date matches the most recent available month are highlighted in green ("Current"); those 1 month behind are in yellow ("Behind"); those 2–5 months behind are in orange ("Delayed"); and those 6 or more months behind (or missing entirely) are in red ("Stale").
+
+```{r staleness-monitor}
+# --------------------------------------------------------------------------
+# Define all Haver series used across the project, grouped by source
+# --------------------------------------------------------------------------
+series_registry <- tribble(
+  ~series_code,   ~database,   ~source_group, ~description,
+
+  # --- PCE Nominal Expenditures (USNA) --- (SA, Mil$). NE = nominal expenditures
+  "cm",           "USNA",      "PCE",         "Overall PCE NE",
+  "cxfem",        "USNA",      "PCE",         "Core PCE NE",
+  "cgxfem",       "USNA",      "PCE",         "Goods ex F&E NE",
+  "csm",          "USNA",      "PCE",         "Services NE",
+  "csxhem",       "USNA",      "PCE",         "Services ex E&HC NE",
+  "csdm",         "USNA",      "PCE",         "Healthcare Services NE",
+  "csdom",        "USNA",      "PCE",         "Healthcare Services: Outpatient Services NE",
+  "csmpm",        "USNA",      "PCE",         "Healthcare Services: Physician Services NE",
+  "csmdm",        "USNA",      "PCE",         "Healthcare Services: Dental Services NE",
+  "csmom",        "USNA",      "PCE",         "Healthcare Services: Paramedical Services NE",
+  "csmnm",        "USNA",      "PCE",         "Healthcare Services: Paramedical: Home Health Care NE",
+  "csmolm",       "USNA",      "PCE",         "Healthcare Services: Paramedical: Medical Laboratories NE",
+  "csmoom",       "USNA",      "PCE",         "Healthcare Services: Paramedical: Other Professional Medical Services NE",
+  "csmhpm",       "USNA",      "PCE",         "Healthcare Services: Hospital Services NE",
+  "csmhnm",       "USNA",      "PCE",         "Healthcare Services: Nursing Homes NE",
+  "ctgm",         "USNA",      "PCE",         "Total Goods NE",
+  "csmoa",        "USNA",      "PCE",         "Healthcare Services: Paramedical Services",
+
+  # --- PCE Price Indices (USNA) --- (seasonally adjusted= SA)
+  "jcm",          "USNA",      "PCE",         "Overall PCE PI",
+  "jcxfem",       "USNA",      "PCE",         "Core PCE PI (ex F&E)",
+  "jcgxfem",      "USNA",      "PCE",         "Goods ex F&E PCE PI",
+  "jcsm",         "USNA",      "PCE",         "Services PCE PI",
+  "jcsxhem",      "USNA",      "PCE",         "Services ex E&HC PCE PI",
+  "jcsdm",        "USNA",      "PCE",         "Healthcare Services PCE PI",
+  "jcsdom",       "USNA",      "PCE",         "Outpatient Services PCE PI",
+  "jcsmpm",       "USNA",      "PCE",         "Physician Services PCE PI",
+  "jcsmdm",       "USNA",      "PCE",         "Dental Services PCE PI",
+  "jcsmom",       "USNA",      "PCE",         "Paramedical Services PCE PI",
+  "jcsmnm",       "USNA",      "PCE",         "Home & Nursing PCE PI",
+  "jcsmhpm",      "USNA",      "PCE",         "Hospital Services PCE PI",
+  "jcsmhnm",      "USNA",      "PCE",         "Nursing Homes PCE PI",
+  "jctgm",        "USNA",      "PCE",         "Total Goods PCE PI",
+
+  # --- Core PCE (USECON) --- (SA)
+  "jcxfebm",      "USECON",    "PCE",         "Core PCE PI (USECON)",
+
+  # --- PPI Industry-Based (PPIR) --- (appear to be SA)
+  "RHC",          "PPIR",      "PPI",         "PPI Selected Health Care Industries",
+  "R6211",        "PPIR",      "PPI",         "PPI Offices of Physicians",
+  "R6212",        "PPIR",      "PPI",         "PPI Offices of Dentists",
+  "R6215",        "PPIR",      "PPI",         "PPI Medical & Diagnostic Labs",
+  "R6216",        "PPIR",      "PPI",         "PPI Home Health",
+  "R621991",      "PPIR",      "PPI",         "PPI Blood and Organ Banks",
+  "R622",         "PPIR",      "PPI",         "PPI Hospitals",
+  "R6231",        "PPIR",      "PPI",         "PPI Nursing Facilities",
+  "R62321",       "PPIR",      "PPI",         "PPI Residential Developmental Disability Homes",
+
+  # special index (table 11) (NSA)
+  "R62211A2",     "PPIR",      "PPI",         "PPI Hospitals - Medicare",
+  "R62211A4",     "PPIR",      "PPI",         "PPI Hospitals - Medicaid",
+  "R62211A6",     "PPIR",      "PPI",         "PPI Hospitals - Private/Other",
+
+  # --- PPI Commodity-Based (PPI) --- (only pulling NSA because it's the most available)
+  "P51",          "PPI",       "PPI",         "PPI Healthcare Services (Commodity)",
+  "P511",         "PPI",       "PPI",         "PPI Healthcare Services: Outpatient (Commodity)",
+  "P511104B",     "PPI",       "PPI",         "PPI Healthcare Services: Outpatient: Hospital: Medicare (Commodity)",
+  "P511104C",     "PPI",       "PPI",         "PPI Healthcare Services: Outpatient: Hospital: Medicaid (Commodity)",
+  "P511104D",     "PPI",       "PPI",         "PPI Healthcare Services: Outpatient: Hospital: Private/All Other (Commodity)",
+
+  "P512",         "PPI",       "PPI",         "PPI Healthcare Services: Inpatient (Commodity)",
+  "P512101B",     "PPI",       "PPI",         "PPI Healthcare Services: Inpatient: Hospital: Medicare (Commodity)",
+  "P512101C",     "PPI",       "PPI",         "PPI Healthcare Services: Inpatient: Hospital: Medicaid (Commodity)",
+  "P512101D",     "PPI",       "PPI",         "PPI Healthcare Services: Inpatient: Hospital: Private/All Other (Commodity)",
+
+  # --- CPI (CPIDATA) ---
+  "UM",           "CPIDATA",   "CPI",         "CPI-U Medical Care (SA)",
+  "UMC",          "CPIDATA",   "CPI",         "CPI-U Medical Care Commodities (SA)",
+  "UMG",          "CPIDATA",   "CPI",         "CPI-U Medicinal Drugs (SA)",
+  "UMP",          "CPIDATA",   "CPI",         "CPI-U Prescription Drugs (SA)",
+  "UMGNA",        "CPIDATA",   "CPI",         "CPI-U Nonprescription Drugs (SA)",
+  "UMS",          "CPIDATA",   "CPI",         "CPI-U Medicare Services (SA)",
+  "UMSPP",        "CPIDATA",   "CPI",         "CPI-U Physicians' Services (SA)",
+  "UMSPT",        "CPIDATA",   "CPI",         "CPI-U Dental Services (SA)",
+  "UMSPE",        "CPIDATA",   "CPI",         "CPI-U Eyeglasses & Eyecare (SA)",
+  "UMSPS",        "CPIDATA",   "CPI",         "CPI-U Services by Other Medical Professionals (SA)",
+  "UMSH",         "CPIDATA",   "CPI",         "CPI-U Hospital and Related Services (SA)",
+  "UMSHS",        "CPIDATA",   "CPI",         "CPI-U Hospital Services (SA)",
+  "UMSHSI",       "CPIDATA",   "CPI",         "CPI-U Inpatient Hospital Services (SA)",
+  "UMSHSO",       "CPIDATA",   "CPI",         "CPI-U Outpatient Hospital Services (SA)",
+  "UMSNS",        "CPIDATA",   "CPI",         "CPI-U Nursing Homes and Adult Daycare (SA)",
+  # Not seasonally adjusted
+  "UMN",          "CPIDATA",   "CPI",         "CPI-U Medical Care (NSA)",
+  "UMCN",         "CPIDATA",   "CPI",         "CPI-U Medical Care Commodities (NSA)",
+  "UMGN",         "CPIDATA",   "CPI",         "CPI-U Medicinal Drugs (NSA)",
+  "UMPN",         "CPIDATA",   "CPI",         "CPI-U Prescription Drugs (NSA)",
+  "UMGNN",        "CPIDATA",   "CPI",         "CPI-U Nonprescription Drugs (NSA)",
+  "UMQN",         "CPIDATA",   "CPI",         "CPI-U Medical Equipment and Supplies (NSA)",
+  "UMSN",         "CPIDATA",   "CPI",         "CPI-U Medical Care Services (NSA)",
+  "UMSPN",        "CPIDATA",   "CPI",         "CPI-U Professional Medical Care Services (NSA)",
+  "UMSPPN",       "CPIDATA",   "CPI",         "CPI-U Physicians' Services (NSA)",
+  "UMSPTN",       "CPIDATA",   "CPI",         "CPI-U Dental Services (NSA)",
+  "UMSPEN",       "CPIDATA",   "CPI",         "CPI-U Eyeglasses and Eye Care (NSA)",
+  "UMSPSN",       "CPIDATA",   "CPI",         "CPI-U Services by Other Medical Professionals (NSA)",
+  "UMSHN",        "CPIDATA",   "CPI",         "CPI-U Hospital and Related Services (NSA)",
+  "UMSHSN",       "CPIDATA",   "CPI",         "CPI-U Hospital Services (NSA)",
+  "UMSHSIN",      "CPIDATA",   "CPI",         "CPI-U Inpatient Hospital Services (NSA)",
+  "UMSHSON",      "CPIDATA",   "CPI",         "CPI-U Outpatient Hospital Services (NSA)",
+  "UMSNSN",       "CPIDATA",   "CPI",         "CPI-U Nursing Homes and Adult Daycare (NSA)",
+  "UOEECN",       "CPIDATA",   "CPI",         "CPI-U Home Health Care",
+  "UMSIN",        "CPIDATA",   "CPI",         "CPI-U Health Insurance"
+)
+
+# --------------------------------------------------------------------------
+# Pull each series and extract the last non-NA date
+# --------------------------------------------------------------------------
+get_end_date <- function(code, db) {
+  full_code <- paste0(code, "@", db)
+  tryCatch({
+    d <- import_haver(series = full_code, eop = FALSE) |>
+      na.omit()
+    col <- setdiff(names(d), "date")
+    d <- d |> filter(!is.na(.data[[col[1]]]))
+    if (nrow(d) == 0) return(as.Date(NA))
+    max(d$date)
+  }, error = function(e) as.Date(NA))
+}
+
+staleness <- series_registry |>
+  rowwise() |>
+  mutate(end_date = get_end_date(series_code, database)) |>
+  ungroup()
+
+# --------------------------------------------------------------------------
+# Determine the most recent end date and flag stale series
+# --------------------------------------------------------------------------
+most_recent <- max(staleness$end_date, na.rm = TRUE)
+
+staleness <- staleness |>
+  mutate(
+    months_behind = as.numeric(
+      (year(most_recent) - year(end_date)) * 12 +
+      (month(most_recent) - month(end_date))
+    ),
+    status = case_when(
+      is.na(end_date)       ~ "Stale",
+      months_behind == 0    ~ "Current",
+      months_behind == 1    ~ "Behind",
+      months_behind <= 5    ~ "Delayed",
+      TRUE                  ~ "Stale"
+    )
+  )
+
+# --------------------------------------------------------------------------
+# Single color-coded table for all series
+# --------------------------------------------------------------------------
+staleness_display <- staleness |>
+  select(source_group, series_code, database, description, end_date, status) |>
+  arrange(status, source_group, series_code)
+
+DT::datatable(
+  staleness_display,
+  caption = paste0(
+    "Series Staleness Monitor (most recent: ",
+    format(most_recent, "%B %Y"), ")"
+  ),
+  colnames = c("Source", "Code", "Database", "Description", "End Date", "Status"),
+  rownames = FALSE,
+  extensions = 'Buttons',
+  options = list(
+    scrollY = T,
+    dom = 'Blfrtip',
+    buttons = c('copy', 'csv', 'excel'),
+    pageLength = 10,
+    lengthMenu = list(c(10, 25, 50, -1), c('10', '25', '50', 'All'))
+  )
+) |>
+  DT::formatStyle(
+    "status",
+    target = "row",
+    backgroundColor = DT::styleEqual(
+      c("Current", "Behind", "Delayed", "Stale"),
+      c("#d4edda", "#fff3cd", "#ffd6a5", "#f8d7da")
+    )
+  )
 ```
