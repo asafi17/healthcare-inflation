@@ -388,6 +388,153 @@ knitr::kable(
 )
 ```
 
+## Medical Care Services Contribution to Core CPI Inflation
+
+This section measures how much of Core CPI inflation is attributable to medical care services, mirroring the PCE contribution analysis above.
+
+Core CPI (All Items Less Food & Energy) includes medical care services as a sub-component. We measure medical care services' contribution using BLS relative importance weights, which reflect each component's expenditure share of the total index.
+
+| Series | Haver Code | Description |
+|--------|-----------|-------------|
+| Core CPI Price Index | `UIXFDG@CPIDATA` | CPI-U All Items Less Food & Energy (SA) |
+| Medical Care Services Price Index | `UMS@CPIDATA` | CPI-U Medical Care Services (SA) |
+| Medical Care Services RI Weight | `RPCUMS@CPIDATA` | Relative importance weight, Medical Care Services |
+| Core CPI RI Weight | `RUIXFDGM@CPIDATA` | Relative importance weight, All Items Less Food & Energy |
+
+For each price index $P_t$, we compute year-over-year inflation:
+
+$$
+\pi_t = \left(\frac{P_t}{P_{t-12}} - 1\right) \times 100
+$$
+
+Medical care services' weight within Core CPI is obtained by rescaling the BLS relative importance weights (which are shares of All Items CPI) to shares of Core CPI:
+
+$$
+w_{ms,t} = \frac{RI^{ms}_t}{RI^{core}_t}
+$$
+
+The contribution (in percentage points) and share of Core CPI inflation are:
+
+$$
+C_{ms,t} = w_{ms,t} \times \pi_{ms,t}, \qquad S_{ms,t} = \frac{C_{ms,t}}{\pi_{core,t}} \times 100
+$$
+
+```{r core-cpi-contribution}
+# --------------------------------------------------------------------------
+# Step 1: Pull price indices and relative importance weights from Haver
+# --------------------------------------------------------------------------
+cpi_core_data <- import_haver(
+  series = c(
+    "UIXFDG@CPIDATA",   # Core CPI PI (All Items Less Food & Energy, SA)
+    "UMS@CPIDATA",       # Medical Care Services PI (SA)
+    "RPCUMS@CPIDATA",    # RI weight: Medical Care Services
+    "RUIXFDGM@CPIDATA"   # RI weight: All Items Less Food & Energy
+  ),
+  eop = FALSE
+) |>
+  rename(
+    core_pi    = UIXFDG,
+    ms_pi      = UMS,
+    ms_ri      = RPCUMS,
+    core_ri    = RUIXFDGM
+  ) |>
+  arrange(date)
+
+# --------------------------------------------------------------------------
+# Step 2: Compute YoY inflation for Core CPI and Medical Care Services
+# --------------------------------------------------------------------------
+cpi_core_data <- cpi_core_data |>
+  mutate(
+    core_infl = ((core_pi / lag(core_pi, 12)) - 1) * 100,
+    ms_infl   = ((ms_pi / lag(ms_pi, 12)) - 1) * 100
+  )
+
+# --------------------------------------------------------------------------
+# Step 3: Rescale RI weights to get Medical Care Services' share of Core CPI
+# --------------------------------------------------------------------------
+# BLS relative importance weights are shares of All Items CPI.
+# Dividing by the Core CPI weight gives the share within Core CPI.
+cpi_core_data <- cpi_core_data |>
+  mutate(ms_weight = ms_ri / core_ri)
+
+# --------------------------------------------------------------------------
+# Step 4: Contribution = weight * component inflation
+# --------------------------------------------------------------------------
+cpi_core_data <- cpi_core_data |>
+  mutate(ms_contrib = ms_weight * ms_infl)
+
+# --------------------------------------------------------------------------
+# Step 5: Medical Care Services' share of Core CPI inflation
+# --------------------------------------------------------------------------
+cpi_core_data <- cpi_core_data |>
+  mutate(ms_contrib_share = (ms_contrib / core_infl) * 100)
+```
+
+### Summary Table
+
+This table displays medical care services' contribution to Core CPI inflation for the most recent months and a 12-month trailing average. The "Contribution (pp)" row shows how many percentage points of Core CPI inflation come from medical care services. The "Share of Core CPI Inflation (%)" row shows medical care services' contribution as a percentage of total Core CPI inflation.
+
+```{r core-cpi-table}
+# --------------------------------------------------------------------------
+# Build the summary table for the same time periods as the other tables
+# --------------------------------------------------------------------------
+cpi_contrib_data <- cpi_core_data |>
+  filter(!is.na(ms_contrib_share) & !is.na(core_infl)) |>
+  select(date, core_infl, ms_contrib, ms_contrib_share)
+
+recent_cpi <- cpi_contrib_data |> slice_tail(n = 4)
+trailing_12_cpi <- cpi_contrib_data |> slice_tail(n = 13) |> slice_head(n = 12)
+
+col_labels_cpi <- c(
+  format(recent_cpi$date[4], "%b %Y"),
+  format(recent_cpi$date[3], "%b %Y"),
+  format(recent_cpi$date[2], "%b %Y"),
+  format(recent_cpi$date[1], "%b %Y"),
+  "12-Mo Avg"
+)
+
+cpi_contrib_tbl <- data.frame(
+  Measure = c(
+    "Core CPI Inflation (%)",
+    "MC Services Contribution (pp)",
+    "Share of Core CPI Inflation (%)"
+  ),
+  t0 = c(
+    round(recent_cpi$core_infl[4], 2),
+    round(recent_cpi$ms_contrib[4], 2),
+    round(recent_cpi$ms_contrib_share[4], 2)
+  ),
+  t1 = c(
+    round(recent_cpi$core_infl[3], 2),
+    round(recent_cpi$ms_contrib[3], 2),
+    round(recent_cpi$ms_contrib_share[3], 2)
+  ),
+  t2 = c(
+    round(recent_cpi$core_infl[2], 2),
+    round(recent_cpi$ms_contrib[2], 2),
+    round(recent_cpi$ms_contrib_share[2], 2)
+  ),
+  t3 = c(
+    round(recent_cpi$core_infl[1], 2),
+    round(recent_cpi$ms_contrib[1], 2),
+    round(recent_cpi$ms_contrib_share[1], 2)
+  ),
+  avg = c(
+    round(mean(trailing_12_cpi$core_infl), 2),
+    round(mean(trailing_12_cpi$ms_contrib), 2),
+    round(mean(trailing_12_cpi$ms_contrib_share), 2)
+  )
+)
+
+names(cpi_contrib_tbl) <- c("Measure", col_labels_cpi)
+
+knitr::kable(
+  cpi_contrib_tbl,
+  caption = "Medical Care Services Contribution to Core CPI Inflation (UIXFDG, UMS, RPCUMS, RUIXFDGM @CPIDATA)",
+  align = c("l", rep("r", 5))
+)
+```
+
 ## Data Staleness Monitor
 
 This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. Series whose end date matches the most recent available month are highlighted in green ("Current"); those 1 month behind are in yellow ("Behind"); those 2–5 months behind are in orange ("Delayed"); and those 6 or more months behind (or missing entirely) are in red ("Stale").
@@ -500,7 +647,10 @@ series_registry <- tribble(
   "UMSHSON",      "CPIDATA",   "CPI",         "CPI-U Outpatient Hospital Services (NSA)",
   "UMSNSN",       "CPIDATA",   "CPI",         "CPI-U Nursing Homes and Adult Daycare (NSA)",
   "UOEECN",       "CPIDATA",   "CPI",         "CPI-U Home Health Care",
-  "UMSIN",        "CPIDATA",   "CPI",         "CPI-U Health Insurance"
+  "UMSIN",        "CPIDATA",   "CPI",         "CPI-U Health Insurance",
+  "UIXFDG",       "CPIDATA",   "CPI",         "CPI-U All Items Less Food & Energy (SA)",
+  "RPCUMS",       "CPIDATA",   "CPI",         "CPI-U RI Weight: Medical Care Services",
+  "RUIXFDGM",     "CPIDATA",   "CPI",         "CPI-U RI Weight: All Items Less Food & Energy"
 )
 
 # --------------------------------------------------------------------------
