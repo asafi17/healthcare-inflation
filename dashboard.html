@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Shria Holla, Kelli Marquardt, and Aryan Safi">
+<meta name="dcterms.date" content="2026-04-06">
+
+<title>Inflation Dashboard</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="dashboard_files/libs/clipboard/clipboard.min.js"></script>
+<script src="dashboard_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="dashboard_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="dashboard_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="dashboard_files/libs/quarto-html/popper.min.js"></script>
+<script src="dashboard_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="dashboard_files/libs/quarto-html/anchor.min.js"></script>
+<link href="dashboard_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="dashboard_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="dashboard_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="dashboard_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="dashboard_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="dashboard_files/libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+
+<script src="dashboard_files/libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+
+<link href="dashboard_files/libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
+
+<script src="dashboard_files/libs/datatables-binding-0.34.0/datatables.js"></script>
+
+<script src="dashboard_files/libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+
+<link href="dashboard_files/libs/dt-core-1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+
+<link href="dashboard_files/libs/dt-core-1.13.6/css/jquery.dataTables.extra.css" rel="stylesheet">
+
+<script src="dashboard_files/libs/dt-core-1.13.6/js/jquery.dataTables.min.js"></script>
+
+<script src="dashboard_files/libs/jszip-1.13.6/jszip.min.js"></script>
+
+<link href="dashboard_files/libs/dt-ext-buttons-1.13.6/css/buttons.dataTables.min.css" rel="stylesheet">
+
+<script src="dashboard_files/libs/dt-ext-buttons-1.13.6/js/dataTables.buttons.min.js"></script>
+
+<script src="dashboard_files/libs/dt-ext-buttons-1.13.6/js/buttons.html5.min.js"></script>
+
+<script src="dashboard_files/libs/dt-ext-buttons-1.13.6/js/buttons.colVis.min.js"></script>
+
+<script src="dashboard_files/libs/dt-ext-buttons-1.13.6/js/buttons.print.min.js"></script>
+
+<link href="dashboard_files/libs/crosstalk-1.2.2/css/crosstalk.min.css" rel="stylesheet">
+
+<script src="dashboard_files/libs/crosstalk-1.2.2/js/crosstalk.min.js"></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#healthcare-services-price-index-summary" id="toc-healthcare-services-price-index-summary" class="nav-link active" data-scroll-target="#healthcare-services-price-index-summary">Healthcare Services Price Index Summary</a>
+  <ul class="collapse">
+  <li><a href="#pce-price-index-healthcare-services" id="toc-pce-price-index-healthcare-services" class="nav-link" data-scroll-target="#pce-price-index-healthcare-services">PCE Price Index: Healthcare Services</a></li>
+  <li><a href="#cpi-medical-care-services" id="toc-cpi-medical-care-services" class="nav-link" data-scroll-target="#cpi-medical-care-services">CPI: Medical Care Services</a></li>
+  <li><a href="#ppi-commodity-healthcare-services" id="toc-ppi-commodity-healthcare-services" class="nav-link" data-scroll-target="#ppi-commodity-healthcare-services">PPI Commodity: Healthcare Services</a></li>
+  <li><a href="#ppi-industry-selected-health-care-industries" id="toc-ppi-industry-selected-health-care-industries" class="nav-link" data-scroll-target="#ppi-industry-selected-health-care-industries">PPI Industry: Selected Health Care Industries</a></li>
+  </ul></li>
+  <li><a href="#healthcare-services-contribution-to-core-pce-inflation" id="toc-healthcare-services-contribution-to-core-pce-inflation" class="nav-link" data-scroll-target="#healthcare-services-contribution-to-core-pce-inflation">Healthcare Services Contribution to Core PCE Inflation</a>
+  <ul class="collapse">
+  <li><a href="#summary-table" id="toc-summary-table" class="nav-link" data-scroll-target="#summary-table">Summary Table</a></li>
+  </ul></li>
+  <li><a href="#medical-care-services-contribution-to-core-cpi-inflation" id="toc-medical-care-services-contribution-to-core-cpi-inflation" class="nav-link" data-scroll-target="#medical-care-services-contribution-to-core-cpi-inflation">Medical Care Services Contribution to Core CPI Inflation</a>
+  <ul class="collapse">
+  <li><a href="#summary-table-1" id="toc-summary-table-1" class="nav-link" data-scroll-target="#summary-table-1">Summary Table</a></li>
+  </ul></li>
+  <li><a href="#data-staleness-monitor" id="toc-data-staleness-monitor" class="nav-link" data-scroll-target="#data-staleness-monitor">Data Staleness Monitor</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Inflation Dashboard</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Shria Holla, Kelli Marquardt, and Aryan Safi </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">April 6, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="healthcare-services-price-index-summary" class="level2">
+<h2 class="anchored" data-anchor-id="healthcare-services-price-index-summary">Healthcare Services Price Index Summary</h2>
+<p>This section tracks headline healthcare services price indices from three major U.S. statistical programs. Each table reports the price index level, year-over-year (YoY) change, and month-over-month (MoM) change for the most recent four months and a trailing 12-month average. Because these series are released on different schedules, “Month <span class="math inline">\(t\)</span>” reflects each source’s own most recent available data.</p>
+<p>For a given price index <span class="math inline">\(P_t\)</span>, the measures are computed as:</p>
+<p><span class="math display">\[
+\text{YoY}_t = \left(\frac{P_t}{P_{t-12}} - 1\right) \times 100
+\]</span></p>
+<p><span class="math display">\[
+\text{MoM}_t = \left(\frac{P_t}{P_{t-1}} - 1\right) \times 100
+\]</span></p>
+<p>The four headline series are:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 36%">
+<col style="width: 38%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Source</th>
+<th>Haver Code</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PCE Price Index</td>
+<td><code>jcsdm@USNA</code></td>
+<td>Healthcare Services PCE Price Index (SA)</td>
+</tr>
+<tr class="even">
+<td>CPI</td>
+<td><code>UMS@CPIDATA</code></td>
+<td>CPI-U Medical Care Services (SA)</td>
+</tr>
+<tr class="odd">
+<td>PPI Commodity</td>
+<td><code>P51@PPI</code></td>
+<td>PPI Healthcare Services, Commodity-Based (NSA)</td>
+</tr>
+<tr class="even">
+<td>PPI Industry</td>
+<td><code>RHC@PPIR</code></td>
+<td>PPI Selected Health Care Industries, Industry-Based (SA)</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper: build a summary table for a single headline price index series</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>build_summary_table <span class="ot">&lt;-</span> <span class="cf">function</span>(series_code, database, label) {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  full_code <span class="ot">&lt;-</span> <span class="fu">paste0</span>(series_code, <span class="st">"@"</span>, database)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> <span class="fu">import_haver</span>(<span class="at">series =</span> full_code, <span class="at">eop =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  col <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="fu">names</span>(d), <span class="st">"date"</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(d)[<span class="fu">names</span>(d) <span class="sc">==</span> col[<span class="dv">1</span>]] <span class="ot">&lt;-</span> <span class="st">"pi"</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> d <span class="sc">|&gt;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(date) <span class="sc">|&gt;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(pi)) <span class="sc">|&gt;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">yoy =</span> (pi <span class="sc">/</span> <span class="fu">lag</span>(pi, <span class="dv">12</span>) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">mom =</span> (pi <span class="sc">/</span> <span class="fu">lag</span>(pi, <span class="dv">1</span>) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Most recent month for this series</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  latest <span class="ot">&lt;-</span> d <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(yoy)) <span class="sc">|&gt;</span> <span class="fu">slice_tail</span>(<span class="at">n =</span> <span class="dv">1</span>)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  latest_date <span class="ot">&lt;-</span> latest<span class="sc">$</span>date</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Get the 4 most recent months with complete data</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  recent <span class="ot">&lt;-</span> d <span class="sc">|&gt;</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(yoy), date <span class="sc">&lt;=</span> latest_date) <span class="sc">|&gt;</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice_tail</span>(<span class="at">n =</span> <span class="dv">4</span>)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 12-month average (t-1 to t-13, excluding the most recent month)</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  trailing_12 <span class="ot">&lt;-</span> d <span class="sc">|&gt;</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(yoy), date <span class="sc">&lt;=</span> latest_date) <span class="sc">|&gt;</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice_tail</span>(<span class="at">n =</span> <span class="dv">13</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">12</span>)</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  avg_pi  <span class="ot">&lt;-</span> <span class="fu">mean</span>(trailing_12<span class="sc">$</span>pi)</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>  avg_yoy <span class="ot">&lt;-</span> <span class="fu">mean</span>(trailing_12<span class="sc">$</span>yoy)</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>  avg_mom <span class="ot">&lt;-</span> <span class="fu">mean</span>(trailing_12<span class="sc">$</span>mom, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Build the display columns: t, t-1, t-2, t-3, 12-mo avg</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>  col_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>(recent<span class="sc">$</span>date[<span class="dv">4</span>], <span class="st">"%b %Y"</span>),</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>(recent<span class="sc">$</span>date[<span class="dv">3</span>], <span class="st">"%b %Y"</span>),</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>(recent<span class="sc">$</span>date[<span class="dv">2</span>], <span class="st">"%b %Y"</span>),</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>(recent<span class="sc">$</span>date[<span class="dv">1</span>], <span class="st">"%b %Y"</span>),</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>    <span class="st">"12-Mo Avg"</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>  tbl <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">Measure =</span> <span class="fu">c</span>(<span class="st">"Price Index"</span>, <span class="st">"YoY Change (%)"</span>, <span class="st">"MoM Change (%)"</span>),</span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">t0 =</span> <span class="fu">c</span>(</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(recent<span class="sc">$</span>pi[<span class="dv">4</span>], <span class="dv">2</span>),</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(recent<span class="sc">$</span>yoy[<span class="dv">4</span>], <span class="dv">2</span>),</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(recent<span class="sc">$</span>mom[<span class="dv">4</span>], <span class="dv">2</span>)</span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>    <span class="at">t1 =</span> <span class="fu">c</span>(</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(recent<span class="sc">$</span>pi[<span class="dv">3</span>], <span class="dv">2</span>),</span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(recent<span class="sc">$</span>yoy[<span class="dv">3</span>], <span class="dv">2</span>),</span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(recent<span class="sc">$</span>mom[<span class="dv">3</span>], <span class="dv">2</span>)</span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>    <span class="at">t2 =</span> <span class="fu">c</span>(</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(recent<span class="sc">$</span>pi[<span class="dv">2</span>], <span class="dv">2</span>),</span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(recent<span class="sc">$</span>yoy[<span class="dv">2</span>], <span class="dv">2</span>),</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(recent<span class="sc">$</span>mom[<span class="dv">2</span>], <span class="dv">2</span>)</span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>    <span class="at">t3 =</span> <span class="fu">c</span>(</span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(recent<span class="sc">$</span>pi[<span class="dv">1</span>], <span class="dv">2</span>),</span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(recent<span class="sc">$</span>yoy[<span class="dv">1</span>], <span class="dv">2</span>),</span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(recent<span class="sc">$</span>mom[<span class="dv">1</span>], <span class="dv">2</span>)</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg =</span> <span class="fu">c</span>(</span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(avg_pi, <span class="dv">2</span>),</span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(avg_yoy, <span class="dv">2</span>),</span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>      <span class="fu">round</span>(avg_mom, <span class="dv">2</span>)</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(tbl) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Measure"</span>, col_labels)</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">table =</span> tbl, <span class="at">label =</span> <span class="fu">paste0</span>(label, <span class="st">" ("</span>, series_code, <span class="st">"@"</span>, database, <span class="st">")"</span>))</span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<section id="pce-price-index-healthcare-services" class="level3">
+<h3 class="anchored" data-anchor-id="pce-price-index-healthcare-services">PCE Price Index: Healthcare Services</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pce <span class="ot">&lt;-</span> <span class="fu">build_summary_table</span>(<span class="st">"jcsdm"</span>, <span class="st">"USNA"</span>, <span class="st">"PCE Healthcare Services"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(pce<span class="sc">$</span>table, <span class="at">caption =</span> pce<span class="sc">$</span>label, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="dv">5</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>PCE Healthcare Services (jcsdm@USNA)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Measure</th>
+<th style="text-align: right;">Jan 2026</th>
+<th style="text-align: right;">Dec 2025</th>
+<th style="text-align: right;">Nov 2025</th>
+<th style="text-align: right;">Oct 2025</th>
+<th style="text-align: right;">12-Mo Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Price Index</td>
+<td style="text-align: right;">123.12</td>
+<td style="text-align: right;">122.40</td>
+<td style="text-align: right;">122.37</td>
+<td style="text-align: right;">122.04</td>
+<td style="text-align: right;">120.97</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">YoY Change (%)</td>
+<td style="text-align: right;">3.21</td>
+<td style="text-align: right;">2.62</td>
+<td style="text-align: right;">2.87</td>
+<td style="text-align: right;">2.76</td>
+<td style="text-align: right;">2.69</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MoM Change (%)</td>
+<td style="text-align: right;">0.60</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.27</td>
+<td style="text-align: right;">0.46</td>
+<td style="text-align: right;">0.22</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="cpi-medical-care-services" class="level3">
+<h3 class="anchored" data-anchor-id="cpi-medical-care-services">CPI: Medical Care Services</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>cpi <span class="ot">&lt;-</span> <span class="fu">build_summary_table</span>(<span class="st">"UMS"</span>, <span class="st">"CPIDATA"</span>, <span class="st">"CPI Medical Care Services"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(cpi<span class="sc">$</span>table, <span class="at">caption =</span> cpi<span class="sc">$</span>label, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="dv">5</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>CPI Medical Care Services (UMS@CPIDATA)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Measure</th>
+<th style="text-align: right;">Feb 2026</th>
+<th style="text-align: right;">Jan 2026</th>
+<th style="text-align: right;">Dec 2025</th>
+<th style="text-align: right;">Nov 2025</th>
+<th style="text-align: right;">12-Mo Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Price Index</td>
+<td style="text-align: right;">648.88</td>
+<td style="text-align: right;">644.93</td>
+<td style="text-align: right;">642.83</td>
+<td style="text-align: right;">640.49</td>
+<td style="text-align: right;">633.78</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">YoY Change (%)</td>
+<td style="text-align: right;">4.50</td>
+<td style="text-align: right;">3.87</td>
+<td style="text-align: right;">3.67</td>
+<td style="text-align: right;">3.66</td>
+<td style="text-align: right;">3.48</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MoM Change (%)</td>
+<td style="text-align: right;">0.61</td>
+<td style="text-align: right;">0.33</td>
+<td style="text-align: right;">0.37</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">0.32</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="ppi-commodity-healthcare-services" class="level3">
+<h3 class="anchored" data-anchor-id="ppi-commodity-healthcare-services">PPI Commodity: Healthcare Services</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ppi_comm <span class="ot">&lt;-</span> <span class="fu">build_summary_table</span>(<span class="st">"P51"</span>, <span class="st">"PPI"</span>, <span class="st">"PPI Healthcare Services (Commodity)"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ppi_comm<span class="sc">$</span>table, <span class="at">caption =</span> ppi_comm<span class="sc">$</span>label, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="dv">5</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>PPI Healthcare Services (Commodity) (P51@PPI)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Measure</th>
+<th style="text-align: right;">Feb 2026</th>
+<th style="text-align: right;">Jan 2026</th>
+<th style="text-align: right;">Dec 2025</th>
+<th style="text-align: right;">Nov 2025</th>
+<th style="text-align: right;">12-Mo Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Price Index</td>
+<td style="text-align: right;">147.23</td>
+<td style="text-align: right;">146.84</td>
+<td style="text-align: right;">146.00</td>
+<td style="text-align: right;">146.14</td>
+<td style="text-align: right;">145.08</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">YoY Change (%)</td>
+<td style="text-align: right;">2.56</td>
+<td style="text-align: right;">2.56</td>
+<td style="text-align: right;">2.52</td>
+<td style="text-align: right;">2.75</td>
+<td style="text-align: right;">2.93</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MoM Change (%)</td>
+<td style="text-align: right;">0.27</td>
+<td style="text-align: right;">0.57</td>
+<td style="text-align: right;">-0.10</td>
+<td style="text-align: right;">0.09</td>
+<td style="text-align: right;">0.21</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="ppi-industry-selected-health-care-industries" class="level3">
+<h3 class="anchored" data-anchor-id="ppi-industry-selected-health-care-industries">PPI Industry: Selected Health Care Industries</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ppi_ind <span class="ot">&lt;-</span> <span class="fu">build_summary_table</span>(<span class="st">"RHC"</span>, <span class="st">"PPIR"</span>, <span class="st">"PPI Selected Health Care Industries"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(ppi_ind<span class="sc">$</span>table, <span class="at">caption =</span> ppi_ind<span class="sc">$</span>label, <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="dv">5</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>PPI Selected Health Care Industries (RHC@PPIR)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Measure</th>
+<th style="text-align: right;">Feb 2026</th>
+<th style="text-align: right;">Jan 2026</th>
+<th style="text-align: right;">Dec 2025</th>
+<th style="text-align: right;">Nov 2025</th>
+<th style="text-align: right;">12-Mo Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Price Index</td>
+<td style="text-align: right;">151.51</td>
+<td style="text-align: right;">151.49</td>
+<td style="text-align: right;">150.33</td>
+<td style="text-align: right;">150.63</td>
+<td style="text-align: right;">149.14</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">YoY Change (%)</td>
+<td style="text-align: right;">2.64</td>
+<td style="text-align: right;">2.98</td>
+<td style="text-align: right;">2.74</td>
+<td style="text-align: right;">3.10</td>
+<td style="text-align: right;">2.92</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MoM Change (%)</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.77</td>
+<td style="text-align: right;">-0.20</td>
+<td style="text-align: right;">0.14</td>
+<td style="text-align: right;">0.25</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</section>
+<section id="healthcare-services-contribution-to-core-pce-inflation" class="level2">
+<h2 class="anchored" data-anchor-id="healthcare-services-contribution-to-core-pce-inflation">Healthcare Services Contribution to Core PCE Inflation</h2>
+<p>This section measures how much of Core PCE inflation is attributable to healthcare services. The approach follows Shria Holla’s code in <code>healthcare_graphs.Rmd</code> (section 5).</p>
+<p>Core PCE excludes food and energy and can be decomposed into three mutually exclusive components:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 23%">
+<col style="width: 26%">
+<col style="width: 26%">
+<col style="width: 23%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Haver NE Code</th>
+<th>Haver PI Code</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Goods ex Food &amp; Energy</td>
+<td><code>cgxfem@USNA</code></td>
+<td><code>jcgxfem@USNA</code></td>
+<td>Core goods (excluding food and energy)</td>
+</tr>
+<tr class="even">
+<td>Services ex Energy &amp; Healthcare</td>
+<td><code>csxhem@USNA</code></td>
+<td><code>jcsxhem@USNA</code></td>
+<td>Core services (excluding energy and healthcare)</td>
+</tr>
+<tr class="odd">
+<td>Healthcare Services</td>
+<td><code>csdm@USNA</code></td>
+<td><code>jcsdm@USNA</code></td>
+<td>PCE healthcare services</td>
+</tr>
+<tr class="even">
+<td><strong>Core PCE (aggregate)</strong></td>
+<td><code>cxfem@USNA</code></td>
+<td><code>jcxfem@USNA</code></td>
+<td>Core PCE total</td>
+</tr>
+</tbody>
+</table>
+<p>For each component <span class="math inline">\(i\)</span>, we first compute the <strong>YoY inflation rate</strong> from its price index <span class="math inline">\(P_{i,t}\)</span>:</p>
+<p><span class="math display">\[
+\pi_{i,t} = \left(\frac{P_{i,t}}{P_{i,t-12}} - 1\right) \times 100
+\]</span></p>
+<p>Next, we compute each component’s <strong>expenditure share</strong> of Core PCE using nominal expenditures (<span class="math inline">\(NE\)</span>):</p>
+<p><span class="math display">\[
+w_{i,t} = \frac{NE_{i,t}}{NE_{core,t}}
+\]</span></p>
+<p>Each component’s <strong>contribution</strong> to Core PCE inflation (in percentage points) is the product of its share and its inflation rate:</p>
+<p><span class="math display">\[
+C_{i,t} = w_{i,t} \times \pi_{i,t}
+\]</span></p>
+<p><strong>Estimated Core PCE inflation</strong> is the sum of all component contributions:</p>
+<p><span class="math display">\[
+\hat{\pi}_{core,t} = C_{goodxfe,t} + C_{servxeh,t} + C_{hcserv,t}
+\]</span></p>
+<p>Finally, <strong>healthcare’s share of Core PCE inflation</strong> expresses healthcare’s contribution as a percentage of the total:</p>
+<p><span class="math display">\[
+S_{hcserv,t} = \frac{C_{hcserv,t}}{\hat{\pi}_{core,t}} \times 100
+\]</span></p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Pull nominal expenditures and price indices from Haver</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Core PCE is decomposed into three components:</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   - goodxfe: Goods excluding Food &amp; Energy</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   - servxeh: Services excluding Energy &amp; Healthcare</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   - hcserv:  Healthcare Services</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"># For each we need nominal expenditures (NE) to compute shares,</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"># and price indices (PI) to compute inflation rates.</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>core_data <span class="ot">&lt;-</span> <span class="fu">import_haver</span>(</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">series =</span> <span class="fu">c</span>(</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"cxfem@USNA"</span>,   <span class="co"># Core PCE NE</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"cgxfem@USNA"</span>,  <span class="co"># Goods ex F&amp;E NE</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"csxhem@USNA"</span>,  <span class="co"># Services ex E&amp;HC NE</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"csdm@USNA"</span>,    <span class="co"># HC Services NE</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"jcxfem@USNA"</span>,  <span class="co"># Core PCE PI</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"jcgxfem@USNA"</span>, <span class="co"># Goods ex F&amp;E PI</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"jcsxhem@USNA"</span>, <span class="co"># Services ex E&amp;HC PI</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"jcsdm@USNA"</span>    <span class="co"># HC Services PI</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">eop =</span> <span class="cn">FALSE</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">core_ne    =</span> cxfem,</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">goodxfe_ne =</span> cgxfem,</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">servxeh_ne =</span> csxhem,</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">hcserv_ne  =</span> csdm,</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">core_pi    =</span> jcxfem,</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">goodxfe_pi =</span> jcgxfem,</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">servxeh_pi =</span> jcsxhem,</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">hcserv_pi  =</span> jcsdm</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(date)</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Compute YoY inflation for each component</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a><span class="co"># YoY inflation = ((PI_t / PI_{t-12}) - 1) * 100</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a><span class="co"># This gives the percentage change in prices over the past 12 months.</span></span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>components <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"core"</span>, <span class="st">"goodxfe"</span>, <span class="st">"servxeh"</span>, <span class="st">"hcserv"</span>)</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (comp <span class="cf">in</span> components) {</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>  pi_col   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(comp, <span class="st">"_pi"</span>)</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>  infl_col <span class="ot">&lt;-</span> <span class="fu">paste0</span>(comp, <span class="st">"_infl"</span>)</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>  core_data <span class="ot">&lt;-</span> core_data <span class="sc">|&gt;</span></span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="sc">!!</span><span class="at">infl_col :=</span> ((<span class="fu">get</span>(pi_col) <span class="sc">/</span> <span class="fu">lag</span>(<span class="fu">get</span>(pi_col), <span class="dv">12</span>)) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="dv">100</span>)</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Compute expenditure shares relative to Core PCE</span></span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a><span class="co"># Each component's share = its nominal expenditure / Core PCE nominal expenditure.</span></span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a><span class="co"># These shares reflect how much of Core PCE spending goes to each category.</span></span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (comp <span class="cf">in</span> <span class="fu">c</span>(<span class="st">"goodxfe"</span>, <span class="st">"servxeh"</span>, <span class="st">"hcserv"</span>)) {</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>  ne_col    <span class="ot">&lt;-</span> <span class="fu">paste0</span>(comp, <span class="st">"_ne"</span>)</span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>  share_col <span class="ot">&lt;-</span> <span class="fu">paste0</span>(comp, <span class="st">"_expshare"</span>)</span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>  core_data <span class="ot">&lt;-</span> core_data <span class="sc">|&gt;</span></span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="sc">!!</span><span class="at">share_col :=</span> <span class="fu">get</span>(ne_col) <span class="sc">/</span> core_ne)</span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 4: Compute contributions (share * inflation)</span></span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a><span class="co"># A component's contribution to aggregate inflation = its expenditure share</span></span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a><span class="co"># multiplied by its own inflation rate. This tells us how many percentage</span></span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a><span class="co"># points of Core PCE inflation are driven by each component.</span></span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (comp <span class="cf">in</span> <span class="fu">c</span>(<span class="st">"goodxfe"</span>, <span class="st">"servxeh"</span>, <span class="st">"hcserv"</span>)) {</span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a>  infl_col    <span class="ot">&lt;-</span> <span class="fu">paste0</span>(comp, <span class="st">"_infl"</span>)</span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a>  share_col   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(comp, <span class="st">"_expshare"</span>)</span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>  contrib_col <span class="ot">&lt;-</span> <span class="fu">paste0</span>(comp, <span class="st">"_contrib"</span>)</span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a>  core_data <span class="ot">&lt;-</span> core_data <span class="sc">|&gt;</span></span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="sc">!!</span><span class="at">contrib_col :=</span> <span class="fu">get</span>(share_col) <span class="sc">*</span> <span class="fu">get</span>(infl_col))</span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 5: Estimate total Core PCE inflation from contributions</span></span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a><span class="co"># Summing the three contributions gives an estimate of Core PCE inflation.</span></span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a><span class="co"># This should closely match the directly computed core_infl.</span></span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a>core_data <span class="ot">&lt;-</span> core_data <span class="sc">|&gt;</span></span>
+<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">core_infl_est =</span> goodxfe_contrib <span class="sc">+</span> servxeh_contrib <span class="sc">+</span> hcserv_contrib)</span>
+<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 6: Healthcare's share of Core PCE inflation</span></span>
+<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a><span class="co"># What percentage of total Core PCE inflation is attributable to healthcare?</span></span>
+<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a><span class="co"># hcserv_contrib_share = (hcserv_contrib / core_infl_est) * 100</span></span>
+<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a>core_data <span class="ot">&lt;-</span> core_data <span class="sc">|&gt;</span></span>
+<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">hcserv_contrib_share =</span> (hcserv_contrib <span class="sc">/</span> core_infl_est) <span class="sc">*</span> <span class="dv">100</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<section id="summary-table" class="level3">
+<h3 class="anchored" data-anchor-id="summary-table">Summary Table</h3>
+<p>This table displays healthcare services’ contribution to Core PCE inflation for the most recent months and a 12-month trailing average. The “Contribution (pp)” row shows how many percentage points of Core PCE inflation come from healthcare services. The “Share of Core PCE Inflation (%)” row shows healthcare’s contribution as a percentage of total Core PCE inflation.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Build the summary table for the same time periods as the other tables</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>contrib_data <span class="ot">&lt;-</span> core_data <span class="sc">|&gt;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(hcserv_contrib_share) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(core_infl_est)) <span class="sc">|&gt;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(date, core_infl_est, hcserv_contrib, hcserv_contrib_share)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>recent <span class="ot">&lt;-</span> contrib_data <span class="sc">|&gt;</span> <span class="fu">slice_tail</span>(<span class="at">n =</span> <span class="dv">4</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>trailing_12 <span class="ot">&lt;-</span> contrib_data <span class="sc">|&gt;</span> <span class="fu">slice_tail</span>(<span class="at">n =</span> <span class="dv">13</span>) <span class="sc">|&gt;</span> <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">12</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>col_labels <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">format</span>(recent<span class="sc">$</span>date[<span class="dv">4</span>], <span class="st">"%b %Y"</span>),</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">format</span>(recent<span class="sc">$</span>date[<span class="dv">3</span>], <span class="st">"%b %Y"</span>),</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">format</span>(recent<span class="sc">$</span>date[<span class="dv">2</span>], <span class="st">"%b %Y"</span>),</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">format</span>(recent<span class="sc">$</span>date[<span class="dv">1</span>], <span class="st">"%b %Y"</span>),</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"12-Mo Avg"</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>contrib_tbl <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">Measure =</span> <span class="fu">c</span>(</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Core PCE Inflation (%, est.)"</span>,</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">"HC Services Contribution (pp)"</span>,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Share of Core PCE Inflation (%)"</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">t0 =</span> <span class="fu">c</span>(</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent<span class="sc">$</span>core_infl_est[<span class="dv">4</span>], <span class="dv">2</span>),</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent<span class="sc">$</span>hcserv_contrib[<span class="dv">4</span>], <span class="dv">2</span>),</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent<span class="sc">$</span>hcserv_contrib_share[<span class="dv">4</span>], <span class="dv">2</span>)</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">t1 =</span> <span class="fu">c</span>(</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent<span class="sc">$</span>core_infl_est[<span class="dv">3</span>], <span class="dv">2</span>),</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent<span class="sc">$</span>hcserv_contrib[<span class="dv">3</span>], <span class="dv">2</span>),</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent<span class="sc">$</span>hcserv_contrib_share[<span class="dv">3</span>], <span class="dv">2</span>)</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>  <span class="at">t2 =</span> <span class="fu">c</span>(</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent<span class="sc">$</span>core_infl_est[<span class="dv">2</span>], <span class="dv">2</span>),</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent<span class="sc">$</span>hcserv_contrib[<span class="dv">2</span>], <span class="dv">2</span>),</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent<span class="sc">$</span>hcserv_contrib_share[<span class="dv">2</span>], <span class="dv">2</span>)</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>  <span class="at">t3 =</span> <span class="fu">c</span>(</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent<span class="sc">$</span>core_infl_est[<span class="dv">1</span>], <span class="dv">2</span>),</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent<span class="sc">$</span>hcserv_contrib[<span class="dv">1</span>], <span class="dv">2</span>),</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent<span class="sc">$</span>hcserv_contrib_share[<span class="dv">1</span>], <span class="dv">2</span>)</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>  <span class="at">avg =</span> <span class="fu">c</span>(</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="fu">mean</span>(trailing_12<span class="sc">$</span>core_infl_est), <span class="dv">2</span>),</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="fu">mean</span>(trailing_12<span class="sc">$</span>hcserv_contrib), <span class="dv">2</span>),</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="fu">mean</span>(trailing_12<span class="sc">$</span>hcserv_contrib_share), <span class="dv">2</span>)</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(contrib_tbl) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Measure"</span>, col_labels)</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>  contrib_tbl,</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">"Healthcare Services Contribution to Core PCE Inflation (cxfem, cgxfem, csxhem, csdm, jcxfem, jcgxfem, jcsxhem, jcsdm @USNA)"</span>,</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>  <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="dv">5</span>))</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Healthcare Services Contribution to Core PCE Inflation (cxfem, cgxfem, csxhem, csdm, jcxfem, jcgxfem, jcsxhem, jcsdm <span class="citation" data-cites="USNA">@USNA</span>)</caption>
+<colgroup>
+<col style="width: 41%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Measure</th>
+<th style="text-align: right;">Jan 2026</th>
+<th style="text-align: right;">Dec 2025</th>
+<th style="text-align: right;">Nov 2025</th>
+<th style="text-align: right;">Oct 2025</th>
+<th style="text-align: right;">12-Mo Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Core PCE Inflation (%, est.)</td>
+<td style="text-align: right;">3.06</td>
+<td style="text-align: right;">3.01</td>
+<td style="text-align: right;">2.84</td>
+<td style="text-align: right;">2.76</td>
+<td style="text-align: right;">2.83</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">HC Services Contribution (pp)</td>
+<td style="text-align: right;">0.62</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">0.55</td>
+<td style="text-align: right;">0.53</td>
+<td style="text-align: right;">0.51</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Share of Core PCE Inflation (%)</td>
+<td style="text-align: right;">20.22</td>
+<td style="text-align: right;">16.71</td>
+<td style="text-align: right;">19.39</td>
+<td style="text-align: right;">19.11</td>
+<td style="text-align: right;">18.12</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</section>
+<section id="medical-care-services-contribution-to-core-cpi-inflation" class="level2">
+<h2 class="anchored" data-anchor-id="medical-care-services-contribution-to-core-cpi-inflation">Medical Care Services Contribution to Core CPI Inflation</h2>
+<p>This section measures how much of Core CPI inflation is attributable to medical care services, mirroring the PCE contribution analysis above.</p>
+<p>Core CPI (All Items Less Food &amp; Energy) includes medical care services as a sub-component. We measure medical care services’ contribution using BLS relative importance weights, which reflect each component’s expenditure share of the total index.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 40%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Series</th>
+<th>Haver Code</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Core CPI Price Index</td>
+<td><code>UIXFDG@CPIDATA</code></td>
+<td>CPI-U All Items Less Food &amp; Energy (SA)</td>
+</tr>
+<tr class="even">
+<td>Medical Care Services Price Index</td>
+<td><code>UMS@CPIDATA</code></td>
+<td>CPI-U Medical Care Services (SA)</td>
+</tr>
+<tr class="odd">
+<td>Medical Care Services RI Weight</td>
+<td><code>RPCUMS@CPIDATA</code></td>
+<td>Relative importance weight, Medical Care Services</td>
+</tr>
+<tr class="even">
+<td>Core CPI RI Weight</td>
+<td><code>RUIXFDGM@CPIDATA</code></td>
+<td>Relative importance weight, All Items Less Food &amp; Energy</td>
+</tr>
+</tbody>
+</table>
+<p>For each price index <span class="math inline">\(P_t\)</span>, we compute year-over-year inflation:</p>
+<p><span class="math display">\[
+\pi_t = \left(\frac{P_t}{P_{t-12}} - 1\right) \times 100
+\]</span></p>
+<p>Medical care services’ weight within Core CPI is obtained by rescaling the BLS relative importance weights (which are shares of All Items CPI) to shares of Core CPI:</p>
+<p><span class="math display">\[
+w_{ms,t} = \frac{RI^{ms}_t}{RI^{core}_t}
+\]</span></p>
+<p>The contribution (in percentage points) and share of Core CPI inflation are:</p>
+<p><span class="math display">\[
+C_{ms,t} = w_{ms,t} \times \pi_{ms,t}, \qquad S_{ms,t} = \frac{C_{ms,t}}{\pi_{core,t}} \times 100
+\]</span></p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Pull price indices and relative importance weights from Haver</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>cpi_core_data <span class="ot">&lt;-</span> <span class="fu">import_haver</span>(</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">series =</span> <span class="fu">c</span>(</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"UIXFDG@CPIDATA"</span>,   <span class="co"># Core CPI PI (All Items Less Food &amp; Energy, SA)</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"UMS@CPIDATA"</span>,       <span class="co"># Medical Care Services PI (SA)</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"RPCUMS@CPIDATA"</span>,    <span class="co"># RI weight: Medical Care Services</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"RUIXFDGM@CPIDATA"</span>   <span class="co"># RI weight: All Items Less Food &amp; Energy</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">eop =</span> <span class="cn">FALSE</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">core_pi    =</span> uixfdg   ,</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">ms_pi      =</span> ums,</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">ms_ri      =</span> rpcums,</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">core_ri    =</span> ruixfdgm</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(date)</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Compute YoY inflation for Core CPI and Medical Care Services</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>cpi_core_data <span class="ot">&lt;-</span> cpi_core_data <span class="sc">|&gt;</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">core_infl =</span> ((core_pi <span class="sc">/</span> <span class="fu">lag</span>(core_pi, <span class="dv">12</span>)) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="dv">100</span>,</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">ms_infl   =</span> ((ms_pi <span class="sc">/</span> <span class="fu">lag</span>(ms_pi, <span class="dv">12</span>)) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Rescale RI weights to get Medical Care Services' share of Core CPI</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a><span class="co"># BLS relative importance weights are shares of All Items CPI.</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Dividing by the Core CPI weight gives the share within Core CPI.</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>cpi_core_data <span class="ot">&lt;-</span> cpi_core_data <span class="sc">|&gt;</span></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ms_weight =</span> ms_ri <span class="sc">/</span> core_ri)</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 4: Contribution = weight * component inflation</span></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>cpi_core_data <span class="ot">&lt;-</span> cpi_core_data <span class="sc">|&gt;</span></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ms_contrib =</span> ms_weight <span class="sc">*</span> ms_infl)</span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 5: Medical Care Services' share of Core CPI inflation</span></span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>cpi_core_data <span class="ot">&lt;-</span> cpi_core_data <span class="sc">|&gt;</span></span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ms_contrib_share =</span> (ms_contrib <span class="sc">/</span> core_infl) <span class="sc">*</span> <span class="dv">100</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<section id="summary-table-1" class="level3">
+<h3 class="anchored" data-anchor-id="summary-table-1">Summary Table</h3>
+<p>This table displays medical care services’ contribution to Core CPI inflation for the most recent months and a 12-month trailing average. The “Contribution (pp)” row shows how many percentage points of Core CPI inflation come from medical care services. The “Share of Core CPI Inflation (%)” row shows medical care services’ contribution as a percentage of total Core CPI inflation.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Build the summary table for the same time periods as the other tables</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>cpi_contrib_data <span class="ot">&lt;-</span> cpi_core_data <span class="sc">|&gt;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(ms_contrib_share) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(core_infl)) <span class="sc">|&gt;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(date, core_infl, ms_contrib, ms_contrib_share)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>recent_cpi <span class="ot">&lt;-</span> cpi_contrib_data <span class="sc">|&gt;</span> <span class="fu">slice_tail</span>(<span class="at">n =</span> <span class="dv">4</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>trailing_12_cpi <span class="ot">&lt;-</span> cpi_contrib_data <span class="sc">|&gt;</span> <span class="fu">slice_tail</span>(<span class="at">n =</span> <span class="dv">13</span>) <span class="sc">|&gt;</span> <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">12</span>)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>col_labels_cpi <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">format</span>(recent_cpi<span class="sc">$</span>date[<span class="dv">4</span>], <span class="st">"%b %Y"</span>),</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">format</span>(recent_cpi<span class="sc">$</span>date[<span class="dv">3</span>], <span class="st">"%b %Y"</span>),</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">format</span>(recent_cpi<span class="sc">$</span>date[<span class="dv">2</span>], <span class="st">"%b %Y"</span>),</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">format</span>(recent_cpi<span class="sc">$</span>date[<span class="dv">1</span>], <span class="st">"%b %Y"</span>),</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"12-Mo Avg"</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>cpi_contrib_tbl <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">Measure =</span> <span class="fu">c</span>(</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Core CPI Inflation (%)"</span>,</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">"MC Services Contribution (pp)"</span>,</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Share of Core CPI Inflation (%)"</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">t0 =</span> <span class="fu">c</span>(</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent_cpi<span class="sc">$</span>core_infl[<span class="dv">4</span>], <span class="dv">2</span>),</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent_cpi<span class="sc">$</span>ms_contrib[<span class="dv">4</span>], <span class="dv">2</span>),</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent_cpi<span class="sc">$</span>ms_contrib_share[<span class="dv">4</span>], <span class="dv">2</span>)</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">t1 =</span> <span class="fu">c</span>(</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent_cpi<span class="sc">$</span>core_infl[<span class="dv">3</span>], <span class="dv">2</span>),</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent_cpi<span class="sc">$</span>ms_contrib[<span class="dv">3</span>], <span class="dv">2</span>),</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent_cpi<span class="sc">$</span>ms_contrib_share[<span class="dv">3</span>], <span class="dv">2</span>)</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>  <span class="at">t2 =</span> <span class="fu">c</span>(</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent_cpi<span class="sc">$</span>core_infl[<span class="dv">2</span>], <span class="dv">2</span>),</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent_cpi<span class="sc">$</span>ms_contrib[<span class="dv">2</span>], <span class="dv">2</span>),</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent_cpi<span class="sc">$</span>ms_contrib_share[<span class="dv">2</span>], <span class="dv">2</span>)</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>  <span class="at">t3 =</span> <span class="fu">c</span>(</span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent_cpi<span class="sc">$</span>core_infl[<span class="dv">1</span>], <span class="dv">2</span>),</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent_cpi<span class="sc">$</span>ms_contrib[<span class="dv">1</span>], <span class="dv">2</span>),</span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(recent_cpi<span class="sc">$</span>ms_contrib_share[<span class="dv">1</span>], <span class="dv">2</span>)</span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>  <span class="at">avg =</span> <span class="fu">c</span>(</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="fu">mean</span>(trailing_12_cpi<span class="sc">$</span>core_infl), <span class="dv">2</span>),</span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="fu">mean</span>(trailing_12_cpi<span class="sc">$</span>ms_contrib), <span class="dv">2</span>),</span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">round</span>(<span class="fu">mean</span>(trailing_12_cpi<span class="sc">$</span>ms_contrib_share), <span class="dv">2</span>)</span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(cpi_contrib_tbl) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Measure"</span>, col_labels_cpi)</span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>  cpi_contrib_tbl,</span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">"Medical Care Services Contribution to Core CPI Inflation (UIXFDG, UMS, RPCUMS, RUIXFDGM @CPIDATA)"</span>,</span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>  <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"l"</span>, <span class="fu">rep</span>(<span class="st">"r"</span>, <span class="dv">5</span>))</span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Medical Care Services Contribution to Core CPI Inflation (UIXFDG, UMS, RPCUMS, RUIXFDGM <span class="citation" data-cites="CPIDATA">@CPIDATA</span>)</caption>
+<colgroup>
+<col style="width: 41%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Measure</th>
+<th style="text-align: right;">Feb 2026</th>
+<th style="text-align: right;">Jan 2026</th>
+<th style="text-align: right;">Dec 2025</th>
+<th style="text-align: right;">Nov 2025</th>
+<th style="text-align: right;">12-Mo Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Core CPI Inflation (%)</td>
+<td style="text-align: right;">2.47</td>
+<td style="text-align: right;">2.51</td>
+<td style="text-align: right;">2.65</td>
+<td style="text-align: right;">2.60</td>
+<td style="text-align: right;">2.89</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MC Services Contribution (pp)</td>
+<td style="text-align: right;">0.36</td>
+<td style="text-align: right;">0.34</td>
+<td style="text-align: right;">0.31</td>
+<td style="text-align: right;">0.28</td>
+<td style="text-align: right;">0.29</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Share of Core CPI Inflation (%)</td>
+<td style="text-align: right;">14.43</td>
+<td style="text-align: right;">13.36</td>
+<td style="text-align: right;">11.58</td>
+<td style="text-align: right;">10.74</td>
+<td style="text-align: right;">10.19</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</section>
+<section id="data-staleness-monitor" class="level2">
+<h2 class="anchored" data-anchor-id="data-staleness-monitor">Data Staleness Monitor</h2>
+<p>This section checks the last available date for every Haver series used across the project’s PCE, PPI, and CPI code. Series whose end date matches the most recent available month are highlighted in green (“Current”); those 1 month behind are in yellow (“Behind”); those 2–5 months behind are in orange (“Delayed”); and those 6 or more months behind (or missing entirely) are in red (“Stale”).</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Define all Haver series used across the project, grouped by source</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>series_registry <span class="ot">&lt;-</span> <span class="fu">tribble</span>(</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>series_code,   <span class="sc">~</span>database,   <span class="sc">~</span>source_group, <span class="sc">~</span>description,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- PCE Nominal Expenditures (USNA) --- (SA, Mil$). NE = nominal expenditures</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"cm"</span>,           <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Overall PCE NE"</span>,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"cxfem"</span>,        <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Core PCE NE"</span>,</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"cgxfem"</span>,       <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Goods ex F&amp;E NE"</span>,</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csm"</span>,          <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Services NE"</span>,</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csxhem"</span>,       <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Services ex E&amp;HC NE"</span>,</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csdm"</span>,         <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Healthcare Services NE"</span>,</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csdom"</span>,        <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Healthcare Services: Outpatient Services NE"</span>,</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csmpm"</span>,        <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Healthcare Services: Physician Services NE"</span>,</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csmdm"</span>,        <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Healthcare Services: Dental Services NE"</span>,</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csmom"</span>,        <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Healthcare Services: Paramedical Services NE"</span>,</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csmnm"</span>,        <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Healthcare Services: Paramedical: Home Health Care NE"</span>,</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csmolm"</span>,       <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Healthcare Services: Paramedical: Medical Laboratories NE"</span>,</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csmoom"</span>,       <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Healthcare Services: Paramedical: Other Professional Medical Services NE"</span>,</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csmhpm"</span>,       <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Healthcare Services: Hospital Services NE"</span>,</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csmhnm"</span>,       <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Healthcare Services: Nursing Homes NE"</span>,</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  <span class="st">"ctgm"</span>,         <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Total Goods NE"</span>,</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  <span class="st">"csmoa"</span>,        <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Healthcare Services: Paramedical Services"</span>,</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- PCE Price Indices (USNA) --- (seasonally adjusted= SA)</span></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcm"</span>,          <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Overall PCE PI"</span>,</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcxfem"</span>,       <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Core PCE PI (ex F&amp;E)"</span>,</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcgxfem"</span>,      <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Goods ex F&amp;E PCE PI"</span>,</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcsm"</span>,         <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Services PCE PI"</span>,</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcsxhem"</span>,      <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Services ex E&amp;HC PCE PI"</span>,</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcsdm"</span>,        <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Healthcare Services PCE PI"</span>,</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcsdom"</span>,       <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Outpatient Services PCE PI"</span>,</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcsmpm"</span>,       <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Physician Services PCE PI"</span>,</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcsmdm"</span>,       <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Dental Services PCE PI"</span>,</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcsmom"</span>,       <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Paramedical Services PCE PI"</span>,</span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcsmnm"</span>,       <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Home &amp; Nursing PCE PI"</span>,</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcsmhpm"</span>,      <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Hospital Services PCE PI"</span>,</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcsmhnm"</span>,      <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Nursing Homes PCE PI"</span>,</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jctgm"</span>,        <span class="st">"USNA"</span>,      <span class="st">"PCE"</span>,         <span class="st">"Total Goods PCE PI"</span>,</span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- Core PCE (USECON) --- (SA)</span></span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>  <span class="st">"jcxfebm"</span>,      <span class="st">"USECON"</span>,    <span class="st">"PCE"</span>,         <span class="st">"Core PCE PI (USECON)"</span>,</span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- PPI Industry-Based (PPIR) --- (appear to be SA)</span></span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a>  <span class="st">"RHC"</span>,          <span class="st">"PPIR"</span>,      <span class="st">"PPI"</span>,         <span class="st">"PPI Selected Health Care Industries"</span>,</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R6211"</span>,        <span class="st">"PPIR"</span>,      <span class="st">"PPI"</span>,         <span class="st">"PPI Offices of Physicians"</span>,</span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R6212"</span>,        <span class="st">"PPIR"</span>,      <span class="st">"PPI"</span>,         <span class="st">"PPI Offices of Dentists"</span>,</span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R6215"</span>,        <span class="st">"PPIR"</span>,      <span class="st">"PPI"</span>,         <span class="st">"PPI Medical &amp; Diagnostic Labs"</span>,</span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R6216"</span>,        <span class="st">"PPIR"</span>,      <span class="st">"PPI"</span>,         <span class="st">"PPI Home Health"</span>,</span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R621991"</span>,      <span class="st">"PPIR"</span>,      <span class="st">"PPI"</span>,         <span class="st">"PPI Blood and Organ Banks"</span>,</span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R622"</span>,         <span class="st">"PPIR"</span>,      <span class="st">"PPI"</span>,         <span class="st">"PPI Hospitals"</span>,</span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R6231"</span>,        <span class="st">"PPIR"</span>,      <span class="st">"PPI"</span>,         <span class="st">"PPI Nursing Facilities"</span>,</span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R62321"</span>,       <span class="st">"PPIR"</span>,      <span class="st">"PPI"</span>,         <span class="st">"PPI Residential Developmental Disability Homes"</span>,</span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>  <span class="co"># special index (table 11) (NSA)</span></span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R62211A2"</span>,     <span class="st">"PPIR"</span>,      <span class="st">"PPI"</span>,         <span class="st">"PPI Hospitals - Medicare"</span>,</span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R62211A4"</span>,     <span class="st">"PPIR"</span>,      <span class="st">"PPI"</span>,         <span class="st">"PPI Hospitals - Medicaid"</span>,</span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>  <span class="st">"R62211A6"</span>,     <span class="st">"PPIR"</span>,      <span class="st">"PPI"</span>,         <span class="st">"PPI Hospitals - Private/Other"</span>,</span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- PPI Commodity-Based (PPI) --- (only pulling NSA because it's the most available)</span></span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a>  <span class="st">"P51"</span>,          <span class="st">"PPI"</span>,       <span class="st">"PPI"</span>,         <span class="st">"PPI Healthcare Services (Commodity)"</span>,</span>
+<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a>  <span class="st">"P511"</span>,         <span class="st">"PPI"</span>,       <span class="st">"PPI"</span>,         <span class="st">"PPI Healthcare Services: Outpatient (Commodity)"</span>,</span>
+<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>  <span class="st">"P511104B"</span>,     <span class="st">"PPI"</span>,       <span class="st">"PPI"</span>,         <span class="st">"PPI Healthcare Services: Outpatient: Hospital: Medicare (Commodity)"</span>,</span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a>  <span class="st">"P511104C"</span>,     <span class="st">"PPI"</span>,       <span class="st">"PPI"</span>,         <span class="st">"PPI Healthcare Services: Outpatient: Hospital: Medicaid (Commodity)"</span>,</span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a>  <span class="st">"P511104D"</span>,     <span class="st">"PPI"</span>,       <span class="st">"PPI"</span>,         <span class="st">"PPI Healthcare Services: Outpatient: Hospital: Private/All Other (Commodity)"</span>,</span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a>  <span class="st">"P512"</span>,         <span class="st">"PPI"</span>,       <span class="st">"PPI"</span>,         <span class="st">"PPI Healthcare Services: Inpatient (Commodity)"</span>,</span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>  <span class="st">"P512101B"</span>,     <span class="st">"PPI"</span>,       <span class="st">"PPI"</span>,         <span class="st">"PPI Healthcare Services: Inpatient: Hospital: Medicare (Commodity)"</span>,</span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>  <span class="st">"P512101C"</span>,     <span class="st">"PPI"</span>,       <span class="st">"PPI"</span>,         <span class="st">"PPI Healthcare Services: Inpatient: Hospital: Medicaid (Commodity)"</span>,</span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>  <span class="st">"P512101D"</span>,     <span class="st">"PPI"</span>,       <span class="st">"PPI"</span>,         <span class="st">"PPI Healthcare Services: Inpatient: Hospital: Private/All Other (Commodity)"</span>,</span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --- CPI (CPIDATA) ---</span></span>
+<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UM"</span>,           <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Medical Care (SA)"</span>,</span>
+<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMC"</span>,          <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Medical Care Commodities (SA)"</span>,</span>
+<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMG"</span>,          <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Medicinal Drugs (SA)"</span>,</span>
+<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMP"</span>,          <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Prescription Drugs (SA)"</span>,</span>
+<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMGNA"</span>,        <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Nonprescription Drugs (SA)"</span>,</span>
+<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMS"</span>,          <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Medicare Services (SA)"</span>,</span>
+<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSPP"</span>,        <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Physicians' Services (SA)"</span>,</span>
+<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSPT"</span>,        <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Dental Services (SA)"</span>,</span>
+<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSPE"</span>,        <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Eyeglasses &amp; Eyecare (SA)"</span>,</span>
+<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSPS"</span>,        <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Services by Other Medical Professionals (SA)"</span>,</span>
+<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSH"</span>,         <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Hospital and Related Services (SA)"</span>,</span>
+<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSHS"</span>,        <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Hospital Services (SA)"</span>,</span>
+<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSHSI"</span>,       <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Inpatient Hospital Services (SA)"</span>,</span>
+<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSHSO"</span>,       <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Outpatient Hospital Services (SA)"</span>,</span>
+<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSNS"</span>,        <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Nursing Homes and Adult Daycare (SA)"</span>,</span>
+<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Not seasonally adjusted</span></span>
+<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMN"</span>,          <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Medical Care (NSA)"</span>,</span>
+<span id="cb10-91"><a href="#cb10-91" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMCN"</span>,         <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Medical Care Commodities (NSA)"</span>,</span>
+<span id="cb10-92"><a href="#cb10-92" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMGN"</span>,         <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Medicinal Drugs (NSA)"</span>,</span>
+<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMPN"</span>,         <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Prescription Drugs (NSA)"</span>,</span>
+<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMGNN"</span>,        <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Nonprescription Drugs (NSA)"</span>,</span>
+<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMQN"</span>,         <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Medical Equipment and Supplies (NSA)"</span>,</span>
+<span id="cb10-96"><a href="#cb10-96" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSN"</span>,         <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Medical Care Services (NSA)"</span>,</span>
+<span id="cb10-97"><a href="#cb10-97" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSPN"</span>,        <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Professional Medical Care Services (NSA)"</span>,</span>
+<span id="cb10-98"><a href="#cb10-98" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSPPN"</span>,       <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Physicians' Services (NSA)"</span>,</span>
+<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSPTN"</span>,       <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Dental Services (NSA)"</span>,</span>
+<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSPEN"</span>,       <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Eyeglasses and Eye Care (NSA)"</span>,</span>
+<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSPSN"</span>,       <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Services by Other Medical Professionals (NSA)"</span>,</span>
+<span id="cb10-102"><a href="#cb10-102" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSHN"</span>,        <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Hospital and Related Services (NSA)"</span>,</span>
+<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSHSN"</span>,       <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Hospital Services (NSA)"</span>,</span>
+<span id="cb10-104"><a href="#cb10-104" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSHSIN"</span>,      <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Inpatient Hospital Services (NSA)"</span>,</span>
+<span id="cb10-105"><a href="#cb10-105" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSHSON"</span>,      <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Outpatient Hospital Services (NSA)"</span>,</span>
+<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSNSN"</span>,       <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Nursing Homes and Adult Daycare (NSA)"</span>,</span>
+<span id="cb10-107"><a href="#cb10-107" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UOEECN"</span>,       <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Home Health Care"</span>,</span>
+<span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UMSIN"</span>,        <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U Health Insurance"</span>,</span>
+<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a>  <span class="st">"UIXFDG"</span>,       <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U All Items Less Food &amp; Energy (SA)"</span>,</span>
+<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a>  <span class="st">"RPCUMS"</span>,       <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U RI Weight: Medical Care Services"</span>,</span>
+<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a>  <span class="st">"RUIXFDGM"</span>,     <span class="st">"CPIDATA"</span>,   <span class="st">"CPI"</span>,         <span class="st">"CPI-U RI Weight: All Items Less Food &amp; Energy"</span></span>
+<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a><span class="co"># Pull each series and extract the last non-NA date</span></span>
+<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a>get_end_date <span class="ot">&lt;-</span> <span class="cf">function</span>(code, db) {</span>
+<span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a>  full_code <span class="ot">&lt;-</span> <span class="fu">paste0</span>(code, <span class="st">"@"</span>, db)</span>
+<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tryCatch</span>({</span>
+<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a>    d <span class="ot">&lt;-</span> <span class="fu">import_haver</span>(<span class="at">series =</span> full_code, <span class="at">eop =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a>      <span class="fu">na.omit</span>()</span>
+<span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a>    col <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="fu">names</span>(d), <span class="st">"date"</span>)</span>
+<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a>    d <span class="ot">&lt;-</span> d <span class="sc">|&gt;</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(.data[[col[<span class="dv">1</span>]]]))</span>
+<span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">nrow</span>(d) <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">return</span>(<span class="fu">as.Date</span>(<span class="cn">NA</span>))</span>
+<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a>    <span class="fu">max</span>(d<span class="sc">$</span>date)</span>
+<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">error =</span> <span class="cf">function</span>(e) <span class="fu">as.Date</span>(<span class="cn">NA</span>))</span>
+<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a>staleness <span class="ot">&lt;-</span> series_registry <span class="sc">|&gt;</span></span>
+<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">|&gt;</span></span>
+<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">end_date =</span> <span class="fu">get_end_date</span>(series_code, database)) <span class="sc">|&gt;</span></span>
+<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a><span class="co"># Determine the most recent end date and flag stale series</span></span>
+<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a>most_recent <span class="ot">&lt;-</span> <span class="fu">max</span>(staleness<span class="sc">$</span>end_date, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a>staleness <span class="ot">&lt;-</span> staleness <span class="sc">|&gt;</span></span>
+<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a>    <span class="at">months_behind =</span> <span class="fu">as.numeric</span>(</span>
+<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a>      (<span class="fu">year</span>(most_recent) <span class="sc">-</span> <span class="fu">year</span>(end_date)) <span class="sc">*</span> <span class="dv">12</span> <span class="sc">+</span></span>
+<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a>      (<span class="fu">month</span>(most_recent) <span class="sc">-</span> <span class="fu">month</span>(end_date))</span>
+<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a>    <span class="at">status =</span> <span class="fu">case_when</span>(</span>
+<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a>      <span class="fu">is.na</span>(end_date)       <span class="sc">~</span> <span class="st">"Stale"</span>,</span>
+<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a>      months_behind <span class="sc">==</span> <span class="dv">0</span>    <span class="sc">~</span> <span class="st">"Current"</span>,</span>
+<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a>      months_behind <span class="sc">==</span> <span class="dv">1</span>    <span class="sc">~</span> <span class="st">"Behind"</span>,</span>
+<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a>      months_behind <span class="sc">&lt;=</span> <span class="dv">5</span>    <span class="sc">~</span> <span class="st">"Delayed"</span>,</span>
+<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span>                  <span class="sc">~</span> <span class="st">"Stale"</span></span>
+<span id="cb10-151"><a href="#cb10-151" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb10-155"><a href="#cb10-155" aria-hidden="true" tabindex="-1"></a><span class="co"># Single color-coded table for all series</span></span>
+<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------------------------------------------------</span></span>
+<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a>staleness_display <span class="ot">&lt;-</span> staleness <span class="sc">|&gt;</span></span>
+<span id="cb10-158"><a href="#cb10-158" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(source_group, series_code, database, description, end_date, status) <span class="sc">|&gt;</span></span>
+<span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(status, source_group, series_code)</span>
+<span id="cb10-160"><a href="#cb10-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a>DT<span class="sc">::</span><span class="fu">datatable</span>(</span>
+<span id="cb10-162"><a href="#cb10-162" aria-hidden="true" tabindex="-1"></a>  staleness_display,</span>
+<span id="cb10-163"><a href="#cb10-163" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption =</span> <span class="fu">paste0</span>(</span>
+<span id="cb10-164"><a href="#cb10-164" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Series Staleness Monitor (most recent: "</span>,</span>
+<span id="cb10-165"><a href="#cb10-165" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>(most_recent, <span class="st">"%B %Y"</span>), <span class="st">")"</span></span>
+<span id="cb10-166"><a href="#cb10-166" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb10-167"><a href="#cb10-167" aria-hidden="true" tabindex="-1"></a>  <span class="at">colnames =</span> <span class="fu">c</span>(<span class="st">"Source"</span>, <span class="st">"Code"</span>, <span class="st">"Database"</span>, <span class="st">"Description"</span>, <span class="st">"End Date"</span>, <span class="st">"Status"</span>),</span>
+<span id="cb10-168"><a href="#cb10-168" aria-hidden="true" tabindex="-1"></a>  <span class="at">rownames =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb10-169"><a href="#cb10-169" aria-hidden="true" tabindex="-1"></a>  <span class="at">extensions =</span> <span class="st">'Buttons'</span>,</span>
+<span id="cb10-170"><a href="#cb10-170" aria-hidden="true" tabindex="-1"></a>  <span class="at">options =</span> <span class="fu">list</span>(</span>
+<span id="cb10-171"><a href="#cb10-171" aria-hidden="true" tabindex="-1"></a>    <span class="at">scrollY =</span> T,</span>
+<span id="cb10-172"><a href="#cb10-172" aria-hidden="true" tabindex="-1"></a>    <span class="at">dom =</span> <span class="st">'Blfrtip'</span>,</span>
+<span id="cb10-173"><a href="#cb10-173" aria-hidden="true" tabindex="-1"></a>    <span class="at">buttons =</span> <span class="fu">c</span>(<span class="st">'copy'</span>, <span class="st">'csv'</span>, <span class="st">'excel'</span>),</span>
+<span id="cb10-174"><a href="#cb10-174" aria-hidden="true" tabindex="-1"></a>    <span class="at">pageLength =</span> <span class="dv">10</span>,</span>
+<span id="cb10-175"><a href="#cb10-175" aria-hidden="true" tabindex="-1"></a>    <span class="at">lengthMenu =</span> <span class="fu">list</span>(<span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">25</span>, <span class="dv">50</span>, <span class="sc">-</span><span class="dv">1</span>), <span class="fu">c</span>(<span class="st">'10'</span>, <span class="st">'25'</span>, <span class="st">'50'</span>, <span class="st">'All'</span>))</span>
+<span id="cb10-176"><a href="#cb10-176" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-177"><a href="#cb10-177" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb10-178"><a href="#cb10-178" aria-hidden="true" tabindex="-1"></a>  DT<span class="sc">::</span><span class="fu">formatStyle</span>(</span>
+<span id="cb10-179"><a href="#cb10-179" aria-hidden="true" tabindex="-1"></a>    <span class="st">"status"</span>,</span>
+<span id="cb10-180"><a href="#cb10-180" aria-hidden="true" tabindex="-1"></a>    <span class="at">target =</span> <span class="st">"row"</span>,</span>
+<span id="cb10-181"><a href="#cb10-181" aria-hidden="true" tabindex="-1"></a>    <span class="at">backgroundColor =</span> DT<span class="sc">::</span><span class="fu">styleEqual</span>(</span>
+<span id="cb10-182"><a href="#cb10-182" aria-hidden="true" tabindex="-1"></a>      <span class="fu">c</span>(<span class="st">"Current"</span>, <span class="st">"Behind"</span>, <span class="st">"Delayed"</span>, <span class="st">"Stale"</span>),</span>
+<span id="cb10-183"><a href="#cb10-183" aria-hidden="true" tabindex="-1"></a>      <span class="fu">c</span>(<span class="st">"#d4edda"</span>, <span class="st">"#fff3cd"</span>, <span class="st">"#ffd6a5"</span>, <span class="st">"#f8d7da"</span>)</span>
+<span id="cb10-184"><a href="#cb10-184" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-185"><a href="#cb10-185" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div class="datatables html-widget html-fill-item" id="htmlwidget-9c12cddee61dd846b63c" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-9c12cddee61dd846b63c">{"x":{"filter":"none","vertical":false,"extensions":["Buttons"],"caption":"<caption>Series Staleness Monitor (most recent: February 2026)<\/caption>","data":[["CPI","CPI","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","PCE","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","CPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","CPI","CPI","PCE"],["UMSHSI","UMSHSIN","cgxfem","cm","csdm","csdom","csm","csmdm","csmhnm","csmhpm","csmnm","csmolm","csmom","csmoom","csmpm","csxhem","ctgm","cxfem","jcgxfem","jcm","jcsdm","jcsdom","jcsm","jcsmdm","jcsmhnm","jcsmhpm","jcsmnm","jcsmom","jcsmpm","jcsxhem","jctgm","jcxfebm","jcxfem","RPCUMS","RUIXFDGM","UIXFDG","UM","UMC","UMCN","UMG","UMGN","UMGNA","UMGNN","UMN","UMP","UMPN","UMQN","UMS","UMSH","UMSHN","UMSHS","UMSHSN","UMSHSO","UMSHSON","UMSIN","UMSN","UMSNS","UMSNSN","UMSPE","UMSPEN","UMSPN","UMSPP","UMSPPN","UMSPT","UMSPTN","UOEECN","P51","P511","P511104B","P511104C","P511104D","P512","P512101B","P512101C","P512101D","R6211","R6212","R6215","R6216","R621991","R622","R62211A2","R62211A4","R62211A6","R6231","R62321","RHC","UMSPS","UMSPSN","csmoa"],["CPIDATA","CPIDATA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USNA","USECON","USNA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","CPIDATA","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPI","PPIR","PPIR","PPIR","PPIR","PPIR","PPIR","PPIR","PPIR","PPIR","PPIR","PPIR","PPIR","CPIDATA","CPIDATA","USNA"],["CPI-U Inpatient Hospital Services (SA)","CPI-U Inpatient Hospital Services (NSA)","Goods ex F&amp;E NE","Overall PCE NE","Healthcare Services NE","Healthcare Services: Outpatient Services NE","Services NE","Healthcare Services: Dental Services NE","Healthcare Services: Nursing Homes NE","Healthcare Services: Hospital Services NE","Healthcare Services: Paramedical: Home Health Care NE","Healthcare Services: Paramedical: Medical Laboratories NE","Healthcare Services: Paramedical Services NE","Healthcare Services: Paramedical: Other Professional Medical Services NE","Healthcare Services: Physician Services NE","Services ex E&amp;HC NE","Total Goods NE","Core PCE NE","Goods ex F&amp;E PCE PI","Overall PCE PI","Healthcare Services PCE PI","Outpatient Services PCE PI","Services PCE PI","Dental Services PCE PI","Nursing Homes PCE PI","Hospital Services PCE PI","Home &amp; Nursing PCE PI","Paramedical Services PCE PI","Physician Services PCE PI","Services ex E&amp;HC PCE PI","Total Goods PCE PI","Core PCE PI (USECON)","Core PCE PI (ex F&amp;E)","CPI-U RI Weight: Medical Care Services","CPI-U RI Weight: All Items Less Food &amp; Energy","CPI-U All Items Less Food &amp; Energy (SA)","CPI-U Medical Care (SA)","CPI-U Medical Care Commodities (SA)","CPI-U Medical Care Commodities (NSA)","CPI-U Medicinal Drugs (SA)","CPI-U Medicinal Drugs (NSA)","CPI-U Nonprescription Drugs (SA)","CPI-U Nonprescription Drugs (NSA)","CPI-U Medical Care (NSA)","CPI-U Prescription Drugs (SA)","CPI-U Prescription Drugs (NSA)","CPI-U Medical Equipment and Supplies (NSA)","CPI-U Medicare Services (SA)","CPI-U Hospital and Related Services (SA)","CPI-U Hospital and Related Services (NSA)","CPI-U Hospital Services (SA)","CPI-U Hospital Services (NSA)","CPI-U Outpatient Hospital Services (SA)","CPI-U Outpatient Hospital Services (NSA)","CPI-U Health Insurance","CPI-U Medical Care Services (NSA)","CPI-U Nursing Homes and Adult Daycare (SA)","CPI-U Nursing Homes and Adult Daycare (NSA)","CPI-U Eyeglasses &amp; Eyecare (SA)","CPI-U Eyeglasses and Eye Care (NSA)","CPI-U Professional Medical Care Services (NSA)","CPI-U Physicians' Services (SA)","CPI-U Physicians' Services (NSA)","CPI-U Dental Services (SA)","CPI-U Dental Services (NSA)","CPI-U Home Health Care","PPI Healthcare Services (Commodity)","PPI Healthcare Services: Outpatient (Commodity)","PPI Healthcare Services: Outpatient: Hospital: Medicare (Commodity)","PPI Healthcare Services: Outpatient: Hospital: Medicaid (Commodity)","PPI Healthcare Services: Outpatient: Hospital: Private/All Other (Commodity)","PPI Healthcare Services: Inpatient (Commodity)","PPI Healthcare Services: Inpatient: Hospital: Medicare (Commodity)","PPI Healthcare Services: Inpatient: Hospital: Medicaid (Commodity)","PPI Healthcare Services: Inpatient: Hospital: Private/All Other (Commodity)","PPI Offices of Physicians","PPI Offices of Dentists","PPI Medical &amp; Diagnostic Labs","PPI Home Health","PPI Blood and Organ Banks","PPI Hospitals","PPI Hospitals - Medicare","PPI Hospitals - Medicaid","PPI Hospitals - Private/Other","PPI Nursing Facilities","PPI Residential Developmental Disability Homes","PPI Selected Health Care Industries","CPI-U Services by Other Medical Professionals (SA)","CPI-U Services by Other Medical Professionals (NSA)","Healthcare Services: Paramedical Services"],["2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-01-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2026-02-01","2025-06-01","2025-06-01","2025-01-01"],["Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Behind","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Current","Stale","Stale","Stale"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Source<\/th>\n      <th>Code<\/th>\n      <th>Database<\/th>\n      <th>Description<\/th>\n      <th>End Date<\/th>\n      <th>Status<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollY":true,"dom":"Blfrtip","buttons":["copy","csv","excel"],"pageLength":10,"lengthMenu":[[10,25,50,-1],["10","25","50","All"]],"columnDefs":[{"name":"source_group","targets":0},{"name":"series_code","targets":1},{"name":"database","targets":2},{"name":"description","targets":3},{"name":"end_date","targets":4},{"name":"status","targets":5}],"order":[],"autoWidth":false,"orderClasses":false,"rowCallback":"function(row, data, displayNum, displayIndex, dataIndex) {\nvar value=data[5]; $(row).css({'background-color':value == \"Current\" ? \"#d4edda\" : value == \"Behind\" ? \"#fff3cd\" : value == \"Delayed\" ? \"#ffd6a5\" : value == \"Stale\" ? \"#f8d7da\" : null});\n}"}},"evals":["options.rowCallback"],"jsHooks":[]}</script>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

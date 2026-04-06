@@ -433,10 +433,10 @@ cpi_core_data <- import_haver(
   eop = FALSE
 ) |>
   rename(
-    core_pi    = UIXFDG,
-    ms_pi      = UMS,
-    ms_ri      = RPCUMS,
-    core_ri    = RUIXFDGM
+    core_pi    = uixfdg   ,
+    ms_pi      = ums,
+    ms_ri      = rpcums,
+    core_ri    = ruixfdgm
   ) |>
   arrange(date)
 
