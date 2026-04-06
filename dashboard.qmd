@@ -535,6 +535,115 @@ knitr::kable(
 )
 ```
 
+## Healthcare Sub-Component Price Indices
+
+This section tracks price indices for key healthcare sub-components using PPI industry-based series and CPI dental services. Each row reports the most recent available price index level, month-over-month (MoM) change, and year-over-year (YoY) change, along with the component's expenditure weight (share of total PCE healthcare services spending).
+
+BEA uses these PPI and CPI prices as inputs to construct PCE healthcare sub-component price indices, so we pair each price series with its corresponding PCE nominal expenditure to compute weights. For dental services, BEA uses the CPI dental price in an intermediate step to derive the PCE dental price index, which is why we use PCE dental expenditures as the weight.
+
+| Component | Price Index Code | Expenditure Weight Code | Description |
+|-----------|-----------------|------------------------|-------------|
+| Physicians | `R6211@PPIR` | `CSMPM@USNA` | PPI Offices of Physicians |
+| Home Health | `R6216@PPIR` | `CSMOAM@USNA` | PPI Home Health Care Services |
+| Medical & Diagnostic Labs | `R6215@PPIR` | `CSMOLM@USNA` | PPI Medical & Diagnostic Labs |
+| Hospitals | `R622@PPIR` | `CSMHPM@USNA` | PPI Hospitals |
+| Nursing Care | `R6231@PPIR` | `CSMHNM@USNA` | PPI Nursing Facilities |
+| Dental Services | `UMSPT@CPIDATA` | `CSMDM@USNA` | CPI-U Dental Services |
+
+For a given price index $P_t$:
+
+$$
+\text{YoY}_t = \left(\frac{P_t}{P_{t-12}} - 1\right) \times 100, \qquad \text{MoM}_t = \left(\frac{P_t}{P_{t-1}} - 1\right) \times 100
+$$
+
+Expenditure weights are each component's share of total healthcare services nominal expenditure:
+
+$$
+w_{i,t} = \frac{NE_{i,t}}{NE_{hcserv,t}} \times 100
+$$
+
+```{r hc-subcomponents}
+# --------------------------------------------------------------------------
+# Define sub-component series
+# --------------------------------------------------------------------------
+subcomp_specs <- tribble(
+  ~label,                    ~pi_code,  ~pi_db,     ~ne_code,  ~ne_db,
+  "Physicians",              "R6211",   "PPIR",     "csmpm",   "USNA",
+  "Home Health",             "R6216",   "PPIR",     "csmoam",  "USNA",
+  "Medical & Diagnostic Labs", "R6215", "PPIR",     "csmolm",  "USNA",
+  "Hospitals",               "R622",    "PPIR",     "csmhpm",  "USNA",
+  "Nursing Care",            "R6231",   "PPIR",     "csmhnm",  "USNA",
+  "Dental Services",         "UMSPT",   "CPIDATA",  "csmdm",   "USNA"
+)
+
+# Pull total healthcare services NE for the denominator
+hcserv_ne <- import_haver(series = "csdm@USNA", eop = FALSE) |>
+  rename(hcserv_ne = csdm) |>
+  arrange(date)
+
+# --------------------------------------------------------------------------
+# Build one row per sub-component
+# --------------------------------------------------------------------------
+build_subcomp_row <- function(label, pi_code, pi_db, ne_code, ne_db) {
+  # Pull price index
+  pi_full <- paste0(pi_code, "@", pi_db)
+  pi_d <- import_haver(series = pi_full, eop = FALSE)
+  pi_col <- setdiff(names(pi_d), "date")
+  names(pi_d)[names(pi_d) == pi_col[1]] <- "pi"
+
+  pi_d <- pi_d |>
+    arrange(date) |>
+    filter(!is.na(pi)) |>
+    mutate(
+      yoy = (pi / lag(pi, 12) - 1) * 100,
+      mom = (pi / lag(pi, 1) - 1) * 100
+    )
+
+  # Pull expenditure weight
+  ne_full <- paste0(ne_code, "@", ne_db)
+  ne_d <- import_haver(series = ne_full, eop = FALSE)
+  ne_col <- setdiff(names(ne_d), "date")
+  names(ne_d)[names(ne_d) == ne_col[1]] <- "ne"
+
+  ne_d <- ne_d |>
+    arrange(date) |>
+    filter(!is.na(ne))
+
+  # Merge with total HC services NE to get weight
+  ne_d <- ne_d |>
+    inner_join(hcserv_ne, by = "date") |>
+    mutate(weight = ne / hcserv_ne * 100)
+
+  # Get latest complete observation (needs yoy, so at least 12 months of data)
+  latest_pi <- pi_d |> filter(!is.na(yoy)) |> slice_tail(n = 1)
+  latest_ne <- ne_d |> filter(date == latest_pi$date)
+
+  # If weight date doesn't match, use most recent weight available
+
+  if (nrow(latest_ne) == 0) {
+    latest_ne <- ne_d |> slice_tail(n = 1)
+  }
+
+  data.frame(
+    Component     = label,
+    `As Of`       = format(latest_pi$date, "%b %Y"),
+    `Weight (%)`  = round(latest_ne$weight[1], 1),
+    `PI Level`    = round(latest_pi$pi, 2),
+    `MoM (%)`     = round(latest_pi$mom, 2),
+    `YoY (%)`     = round(latest_pi$yoy, 2),
+    check.names   = FALSE
+  )
+}
+
+subcomp_tbl <- purrr::pmap_dfr(subcomp_specs, build_subcomp_row)
+
+knitr::kable(
+  subcomp_tbl,
+  caption = "Healthcare Sub-Component Price Indices with PCE Expenditure Weights",
+  align = c("l", "l", rep("r", 4))
+)
+```
+
 ## Data Staleness Monitor
 
 This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. Series whose end date matches the most recent available month are highlighted in green ("Current"); those 1 month behind are in yellow ("Behind"); those 2–5 months behind are in orange ("Delayed"); and those 6 or more months behind (or missing entirely) are in red ("Stale").
@@ -564,6 +673,7 @@ series_registry <- tribble(
   "csmhnm",       "USNA",      "PCE",         "Healthcare Services: Nursing Homes NE",
   "ctgm",         "USNA",      "PCE",         "Total Goods NE",
   "csmoa",        "USNA",      "PCE",         "Healthcare Services: Paramedical Services",
+  "csmoam",       "USNA",      "PCE",         "Healthcare Services: Paramedical: Home Health Care NE (monthly)",
 
   # --- PCE Price Indices (USNA) --- (seasonally adjusted= SA)
   "jcm",          "USNA",      "PCE",         "Overall PCE PI",
