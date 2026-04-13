@@ -549,7 +549,7 @@ knitr::kable(
 
 ## Healthcare Sub-Component Price Indices
 
-This section tracks price indices for key healthcare sub-components using PPI industry-based series and CPI dental services. Each row reports the most recent available price index level, month-over-month (MoM) change, and year-over-year (YoY) change, along with the component's expenditure weight (share of total PCE healthcare services spending).
+This section tracks price indices for key healthcare sub-components using PPI industry-based series and CPI dental services. Each row reports the most recent available price index level, month-over-month (MoM) change, and year-over-year (YoY) change, along with the component's expenditure weight (share of total PCE healthcare services spending). The two right-most columns add a trailing 12-month change that excludes the current month and an average of the last 12 monthly changes.
 
 BEA uses these PPI and CPI prices as inputs to construct PCE healthcare sub-component price indices, so we pair each price series with its corresponding PCE nominal expenditure to compute weights. For dental services, BEA uses the CPI dental price in an intermediate step to derive the PCE dental price index, which is why we use PCE dental expenditures as the weight.
 
@@ -566,6 +566,16 @@ For a given price index $P_t$:
 
 $$
 \text{YoY}_t = \left(\frac{P_t}{P_{t-12}} - 1\right) \times 100, \qquad \text{MoM}_t = \left(\frac{P_t}{P_{t-1}} - 1\right) \times 100
+$$
+
+The appended trailing columns are:
+
+$$
+\text{Trailing 12-Mo Change}_t = \left(\frac{P_{t-1}}{P_{t-13}} - 1\right) \times 100
+$$
+
+$$
+\text{Avg MoM, Last 12}_t = \frac{1}{12}\sum_{j=0}^{11}\left(\frac{P_{t-j}}{P_{t-j-1}} - 1\right)\times 100
 $$
 
 Expenditure weights are each component's share of total healthcare services nominal expenditure:
@@ -608,7 +618,8 @@ build_subcomp_row <- function(label, pi_code, pi_db, ne_code, ne_db) {
     filter(!is.na(pi)) |>
     mutate(
       yoy = (pi / lag(pi, 12) - 1) * 100,
-      mom = (pi / lag(pi, 1) - 1) * 100
+      mom = (pi / lag(pi, 1) - 1) * 100,
+      trailing_12_change = (lag(pi, 1) / lag(pi, 13) - 1) * 100
     )
 
   # Pull expenditure weight
@@ -629,6 +640,9 @@ build_subcomp_row <- function(label, pi_code, pi_db, ne_code, ne_db) {
   # Get latest complete observation (needs yoy, so at least 12 months of data)
   latest_pi <- pi_d |> filter(!is.na(yoy)) |> slice_tail(n = 1)
   latest_ne <- ne_d |> filter(date == latest_pi$date)
+  recent_mom <- pi_d |>
+    filter(!is.na(mom), date <= latest_pi$date) |>
+    slice_tail(n = 12)
 
   # If weight date doesn't match, use most recent weight available
 
@@ -643,6 +657,8 @@ build_subcomp_row <- function(label, pi_code, pi_db, ne_code, ne_db) {
     `PI Level`    = round(latest_pi$pi, 2),
     `MoM (%)`     = round(latest_pi$mom, 2),
     `YoY (%)`     = round(latest_pi$yoy, 2),
+    `Trailing 12-Mo Change (%)` = round(latest_pi$trailing_12_change, 2),
+    `Avg MoM, Last 12 (%)` = round(mean(recent_mom$mom, na.rm = TRUE), 2),
     check.names   = FALSE
   )
 }
@@ -652,7 +668,7 @@ subcomp_tbl <- purrr::pmap_dfr(subcomp_specs, build_subcomp_row)
 knitr::kable(
   subcomp_tbl,
   caption = "Healthcare Sub-Component Price Indices with PCE Expenditure Weights",
-  align = c("l", "l", rep("r", 4))
+  align = c("l", "l", rep("r", 6))
 )
 ```
 
