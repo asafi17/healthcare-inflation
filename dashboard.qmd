@@ -644,6 +644,101 @@ knitr::kable(
 )
 ```
 
+## Data Release
+
+This section pulls the recent FRED release calendar for CPI, PPI, and PCE-related data releases. For PCE, FRED exposes the relevant BEA release as **Personal Income and Outlays**, which contains the monthly PCE and core PCE data.
+
+The tables below show the latest six published release dates for each program, ordered from most recent to least recent. If a FRED API key is not available at render time, the section will display a short error message instead of stopping the full dashboard render.
+
+```{r data-release, results='asis'}
+release_specs <- tribble(
+  ~release, ~release_id, ~release_source,
+  "CPI",    10L,         "Consumer Price Index",
+  "PPI",    46L,         "Producer Price Index",
+  "PCE",    54L,         "Personal Income and Outlays"
+)
+
+pull_release_dates <- function(release, release_id, release_source, n = 6) {
+  last_error <- NULL
+
+  for (attempt in 1:3) {
+    out <- tryCatch(
+      fredr::fredr_release_dates(
+        release_id = release_id,
+        sort_order = "desc",
+        limit = n
+      ),
+      error = function(e) {
+        last_error <<- e
+        NULL
+      }
+    )
+
+    if (!is.null(out)) {
+      return(
+        out |>
+          transmute(
+            Release = release,
+            Source = release_source,
+            `Release Date` = as.Date(date),
+            Rank = row_number()
+          )
+      )
+    }
+
+    Sys.sleep(attempt)
+  }
+
+  stop(last_error)
+}
+
+release_calendar <- tryCatch({
+  purrr::pmap_dfr(release_specs, pull_release_dates)
+}, error = function(e) e)
+
+if (inherits(release_calendar, "error")) {
+  cat(
+    paste0(
+      "Data release calendar unavailable: ",
+      conditionMessage(release_calendar),
+      ". Check that `FRED_API_KEY` is available in the render environment."
+    )
+  )
+} else {
+  release_summary <- release_calendar |>
+    arrange(Release, Rank) |>
+    group_by(Release, Source) |>
+    summarise(
+      `Latest Release` = first(`Release Date`),
+      `Previous Release` = dplyr::nth(`Release Date`, 2),
+      `Days Since Latest` = as.integer(Sys.Date() - first(`Release Date`)),
+      .groups = "drop"
+    ) |>
+    mutate(across(c(`Latest Release`, `Previous Release`), ~ format(.x, "%b %d, %Y")))
+
+  release_wide <- release_calendar |>
+    mutate(`Calendar Slot` = paste0("Release ", Rank)) |>
+    select(`Calendar Slot`, Release, `Release Date`) |>
+    mutate(`Release Date` = format(`Release Date`, "%b %d, %Y")) |>
+    pivot_wider(names_from = Release, values_from = `Release Date`) |>
+    arrange(`Calendar Slot`)
+
+  knitr::kable(
+    release_summary,
+    caption = "Latest FRED Release Dates for CPI, PPI, and PCE",
+    align = c("l", "l", "r", "r", "r")
+  )
+
+  cat("\n")
+
+  knitr::kable(
+    release_wide,
+    caption = "Recent Data Release Calendar",
+    align = c("l", rep("r", 3))
+  )
+}
+```
+
 ## Data Staleness Monitor
 
 This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. Series whose end date matches the most recent available month are highlighted in green ("Current"); those 1 month behind are in yellow ("Behind"); those 2–5 months behind are in orange ("Delayed"); and those 6 or more months behind (or missing entirely) are in red ("Stale").
