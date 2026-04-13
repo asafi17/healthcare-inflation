@@ -646,19 +646,19 @@ knitr::kable(
 
 ## Data Release
 
-This section pulls the recent FRED release calendar for CPI, PPI, and PCE-related data releases. For PCE, FRED exposes the relevant BEA release as **Personal Income and Outlays**, which contains the monthly PCE and core PCE data.
+This section shows the most recent published release date for CPI, PPI, and PCE-related data, then lists all currently scheduled upcoming release dates available from the official agency calendars. CPI is published in the BLS **Consumer Price Index** release, PPI is published in the BLS **Producer Price Index** release, and PCE is published in BEA's **Personal Income and Outlays** release.
 
-The tables below show the latest six published release dates for each program, ordered from most recent to least recent. If a FRED API key is not available at render time, the section will display a short error message instead of stopping the full dashboard render.
+The latest published release date is pulled from FRED release history via `fredr::fredr_release_dates()`. The upcoming schedule is pulled from the official BLS and BEA release-calendar pages. If the FRED API key or the schedule pages are unavailable at render time, the section will display a short error message instead of stopping the full dashboard render.
 
 ```{r data-release, results='asis'}
 release_specs <- tribble(
-  ~release, ~release_id, ~release_source,
-  "CPI",    10L,         "Consumer Price Index",
-  "PPI",    46L,         "Producer Price Index",
-  "PCE",    54L,         "Personal Income and Outlays"
+  ~series, ~release_id, ~agency, ~release_name, ~schedule_url, ~schedule_type,
+  "CPI",   10L,         "BLS",   "Consumer Price Index",       "https://www.bls.gov/schedule/news_release/cpi.htm", "bls",
+  "PPI",   46L,         "BLS",   "Producer Price Index",       "https://www.bls.gov/schedule/news_release/ppi.htm", "bls",
+  "PCE",   54L,         "BEA",   "Personal Income and Outlays","https://www.bea.gov/news/schedule",                  "bea"
 )
 
-pull_release_dates <- function(release, release_id, release_source, n = 6) {
+pull_latest_release <- function(series, release_id, agency, release_name, schedule_url, schedule_type) {
   last_error <- NULL
 
   for (attempt in 1:3) {
@@ -666,7 +666,7 @@ pull_release_dates <- function(release, release_id, release_source, n = 6) {
       fredr::fredr_release_dates(
         release_id = release_id,
         sort_order = "desc",
-        limit = n
+        limit = 1
       ),
       error = function(e) {
         last_error <<- e
@@ -678,10 +678,10 @@ pull_release_dates <- function(release, release_id, release_source, n = 6) {
       return(
         out |>
           transmute(
-            Release = release,
-            Source = release_source,
-            `Release Date` = as.Date(date),
-            Rank = row_number()
+            Series = series,
+            Agency = agency,
+            `News Release` = release_name,
+            `Latest Release` = as.Date(date)
           )
       )
     }
@@ -692,49 +692,139 @@ pull_release_dates <- function(release, release_id, release_source, n = 6) {
   stop(last_error)
 }
 
-release_calendar <- tryCatch({
-  purrr::pmap_dfr(release_specs, pull_release_dates)
+pull_upcoming_bls <- function(series, agency, release_name, schedule_url) {
+  tbl <- rvest::read_html(schedule_url) |>
+    rvest::html_elements("table") |>
+    purrr::pluck(2) |>
+    rvest::html_table()
+
+  tbl |>
+    transmute(
+      Series = series,
+      Agency = agency,
+      `News Release` = release_name,
+      `Reference Period` = `Reference Month`,
+      `Release Date` = as.Date(gsub("\\.", "", `Release Date`), format = "%b %d, %Y"),
+      `Release Time` = `Release Time`
+    )
+}
+
+pull_upcoming_bea <- function(series, agency, release_name, schedule_url) {
+  tbl <- rvest::read_html(schedule_url) |>
+    rvest::html_element("table") |>
+    rvest::html_table()
+
+  year_label <- names(tbl)[1]
+  schedule_year <- sub(".*(20[0-9]{2}).*", "\\1", year_label)
+  names(tbl) <- c("schedule_stamp", "release_type", "Release")[seq_along(names(tbl))]
+
+  tbl |>
+    transmute(
+      schedule_stamp,
+      release_entry = Release
+    ) |>
+    filter(grepl("^Personal Income and Outlays", release_entry)) |>
+    mutate(
+      Series = series,
+      Agency = agency,
+      `News Release` = release_name,
+      `Reference Period` = trimws(sub("^Personal Income and Outlays,\\s*", "", release_entry)),
+      `Release Date` = as.Date(
+        paste(trimws(sub("\n.*$", "", schedule_stamp)), schedule_year),
+        format = "%B %d %Y"
+      ),
+      `Release Time` = trimws(sub("^.*\n", "", schedule_stamp))
+    ) |>
+    select(Series, Agency, `News Release`, `Reference Period`, `Release Date`, `Release Time`)
+}
+
+latest_release <- tryCatch({
+  purrr::pmap_dfr(release_specs, pull_latest_release)
 }, error = function(e) e)
 
-if (inherits(release_calendar, "error")) {
+upcoming_release <- tryCatch({
+  purrr::pmap_dfr(
+    release_specs,
+    function(series, release_id, agency, release_name, schedule_url, schedule_type) {
+      if (schedule_type == "bls") {
+        pull_upcoming_bls(series, agency, release_name, schedule_url)
+      } else {
+        pull_upcoming_bea(series, agency, release_name, schedule_url)
+      }
+    }
+  )
+}, error = function(e) e)
+
+if (inherits(latest_release, "error") || inherits(upcoming_release, "error")) {
+  err_msg <- if (inherits(latest_release, "error")) {
+    conditionMessage(latest_release)
+  } else {
+    conditionMessage(upcoming_release)
+  }
+
   cat(
     paste0(
       "Data release calendar unavailable: ",
-      conditionMessage(release_calendar),
-      ". Check that `FRED_API_KEY` is available in the render environment."
+      err_msg,
+      ". Check that `FRED_API_KEY` is available and that the BLS/BEA schedule pages are reachable in the render environment."
     )
   )
 } else {
-  release_summary <- release_calendar |>
-    arrange(Release, Rank) |>
-    group_by(Release, Source) |>
-    summarise(
-      `Latest Release` = first(`Release Date`),
-      `Previous Release` = dplyr::nth(`Release Date`, 2),
-      `Days Since Latest` = as.integer(Sys.Date() - first(`Release Date`)),
-      .groups = "drop"
-    ) |>
-    mutate(across(c(`Latest Release`, `Previous Release`), ~ format(.x, "%b %d, %Y")))
+  upcoming_release <- upcoming_release |>
+    inner_join(latest_release, by = c("Series", "Agency", "News Release")) |>
+    filter(`Release Date` > `Latest Release`) |>
+    arrange(Series, `Release Date`)
 
-  release_wide <- release_calendar |>
-    mutate(`Calendar Slot` = paste0("Release ", Rank)) |>
-    select(`Calendar Slot`, Release, `Release Date`) |>
-    mutate(`Release Date` = format(`Release Date`, "%b %d, %Y")) |>
-    pivot_wider(names_from = Release, values_from = `Release Date`) |>
-    arrange(`Calendar Slot`)
+  release_summary <- latest_release |>
+    left_join(
+      upcoming_release |>
+        group_by(Series, Agency, `News Release`) |>
+        summarise(
+          `Next Scheduled Release` = min(`Release Date`, na.rm = TRUE),
+          `Upcoming Releases` = dplyr::n(),
+          .groups = "drop"
+        ),
+      by = c("Series", "Agency", "News Release")
+    ) |>
+    select(
+      Series,
+      Agency,
+      `News Release`,
+      `Latest Release`,
+      `Next Scheduled Release`,
+      `Upcoming Releases`
+    ) |>
+    mutate(
+      `Latest Release` = format(`Latest Release`, "%b %d, %Y"),
+      `Next Scheduled Release` = ifelse(
+        is.na(`Next Scheduled Release`),
+        NA_character_,
+        format(`Next Scheduled Release`, "%b %d, %Y")
+      )
+    )
+
+  upcoming_display <- upcoming_release |>
+    transmute(
+      Series,
+      Agency,
+      `News Release`,
+      `Reference Period`,
+      `Release Date` = format(`Release Date`, "%b %d, %Y"),
+      `Release Time`
+    )
 
   knitr::kable(
     release_summary,
-    caption = "Latest FRED Release Dates for CPI, PPI, and PCE",
-    align = c("l", "l", "r", "r", "r")
+    caption = "Latest Published Release and Next Scheduled Release",
+    align = c("l", "l", "l", "r", "r", "r")
   )
 
   cat("\n")
 
   knitr::kable(
-    release_wide,
-    caption = "Recent Data Release Calendar",
-    align = c("l", rep("r", 3))
+    upcoming_display,
+    caption = "Upcoming Release Calendar",
+    align = c("l", "l", "l", "l", "r", "r")
   )
 }
 ```
