@@ -813,18 +813,22 @@ if (inherits(latest_release, "error") || inherits(upcoming_release, "error")) {
       `Release Time`
     )
 
-  knitr::kable(
-    release_summary,
-    caption = "Latest Published Release and Next Scheduled Release",
-    align = c("l", "l", "l", "r", "r", "r")
+  print(
+    knitr::kable(
+      release_summary,
+      caption = "Latest Published Release and Next Scheduled Release",
+      align = c("l", "l", "l", "r", "r", "r")
+    )
   )
 
-  cat("\n")
+  cat("\n\n")
 
-  knitr::kable(
-    upcoming_display,
-    caption = "Upcoming Release Calendar",
-    align = c("l", "l", "l", "l", "r", "r")
+  print(
+    knitr::kable(
+      upcoming_display,
+      caption = "Upcoming Release Calendar",
+      align = c("l", "l", "l", "l", "r", "r")
+    )
   )
 }
 ```
