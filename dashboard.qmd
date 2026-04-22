@@ -806,6 +806,21 @@ if (inherits(latest_release, "error") || inherits(upcoming_release, "error")) {
     )
   )
 } else {
+  # Shift a "Month Year" (or bare "Month") reference period back one calendar
+  # month. Used to infer the Latest Reference Period when the agency's
+  # schedule page no longer lists the already-published release (BEA).
+  shift_ref_period <- function(ref, fallback_year) {
+    if (is.na(ref)) return(NA_character_)
+    d <- suppressWarnings(lubridate::my(ref))
+    if (is.na(d) && !is.na(fallback_year)) {
+      d <- suppressWarnings(
+        as.Date(paste("1", ref, fallback_year), format = "%d %B %Y")
+      )
+    }
+    if (is.na(d)) return(NA_character_)
+    format(d - months(1), "%B %Y")
+  }
+
   full_schedule <- upcoming_release
 
   upcoming_release <- full_schedule |>
@@ -833,6 +848,16 @@ if (inherits(latest_release, "error") || inherits(upcoming_release, "error")) {
           .groups = "drop"
         ),
       by = c("Series", "Agency", "News Release")
+    ) |>
+    mutate(
+      `Latest Reference Period` = dplyr::coalesce(
+        `Latest Reference Period`,
+        purrr::map2_chr(
+          `Next Reference Period`,
+          lubridate::year(`Next Scheduled Release`),
+          shift_ref_period
+        )
+      )
     ) |>
     select(
       Series,
