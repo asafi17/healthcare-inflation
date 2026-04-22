@@ -549,7 +549,7 @@ knitr::kable(
 
 ## Healthcare Sub-Component Price Indices
 
-This section tracks price indices for key healthcare sub-components using PPI industry-based series and CPI dental services. Each row reports the most recent available price index level, month-over-month (MoM) change, and year-over-year (YoY) change, along with the component's expenditure weight (share of total PCE healthcare services spending). The two right-most columns add a trailing 12-month change that excludes the current month and an average of the last 12 monthly changes.
+This section tracks price indices for key healthcare sub-components using PPI industry-based series and CPI dental services. Each row reports the most recent available price index level, month-over-month (MoM) change, and year-over-year (YoY) change, along with the component's expenditure weight (share of total PCE healthcare services spending). The three right-most columns all exclude the current month $t$ and use the trailing window ending at $t-1$: a trailing 12-month change ($P_{t-1}/P_{t-13}$), the average of the 12 monthly changes from $t-12$ to $t-1$, and the average of the 12 year-over-year changes from $t-12$ to $t-1$.
 
 BEA uses these PPI and CPI prices as inputs to construct PCE healthcare sub-component price indices, so we pair each price series with its corresponding PCE nominal expenditure to compute weights. For dental services, BEA uses the CPI dental price in an intermediate step to derive the PCE dental price index, which is why we use PCE dental expenditures as the weight.
 
@@ -575,7 +575,11 @@ $$
 $$
 
 $$
-\text{Avg MoM, Last 12}_t = \frac{1}{12}\sum_{j=0}^{11}\left(\frac{P_{t-j}}{P_{t-j-1}} - 1\right)\times 100
+\text{Avg MoM, Last 12}_t = \frac{1}{12}\sum_{j=1}^{12}\left(\frac{P_{t-j}}{P_{t-j-1}} - 1\right)\times 100
+$$
+
+$$
+\text{Avg YoY, Last 12}_t = \frac{1}{12}\sum_{j=1}^{12}\text{YoY}_{t-j}
 $$
 
 Expenditure weights are each component's share of total healthcare services nominal expenditure:
@@ -641,7 +645,10 @@ build_subcomp_row <- function(label, pi_code, pi_db, ne_code, ne_db) {
   latest_pi <- pi_d |> filter(!is.na(yoy)) |> slice_tail(n = 1)
   latest_ne <- ne_d |> filter(date == latest_pi$date)
   recent_mom <- pi_d |>
-    filter(!is.na(mom), date <= latest_pi$date) |>
+    filter(!is.na(mom), date < latest_pi$date) |>
+    slice_tail(n = 12)
+  recent_yoy <- pi_d |>
+    filter(!is.na(yoy), date < latest_pi$date) |>
     slice_tail(n = 12)
 
   # If weight date doesn't match, use most recent weight available
@@ -659,6 +666,7 @@ build_subcomp_row <- function(label, pi_code, pi_db, ne_code, ne_db) {
     `YoY (%)`     = round(latest_pi$yoy, 2),
     `Trailing 12-Mo Change (%)` = round(latest_pi$trailing_12_change, 2),
     `Avg MoM, Last 12 (%)` = round(mean(recent_mom$mom, na.rm = TRUE), 2),
+    `Avg YoY, Last 12 (%)` = round(mean(recent_yoy$yoy, na.rm = TRUE), 2),
     check.names   = FALSE
   )
 }
@@ -668,7 +676,7 @@ subcomp_tbl <- purrr::pmap_dfr(subcomp_specs, build_subcomp_row)
 knitr::kable(
   subcomp_tbl,
   caption = "Healthcare Sub-Component Price Indices with PCE Expenditure Weights",
-  align = c("l", "l", rep("r", 6))
+  align = c("l", "l", rep("r", 7))
 )
 ```
 
@@ -798,17 +806,29 @@ if (inherits(latest_release, "error") || inherits(upcoming_release, "error")) {
     )
   )
 } else {
-  upcoming_release <- upcoming_release |>
+  full_schedule <- upcoming_release
+
+  upcoming_release <- full_schedule |>
     inner_join(latest_release, by = c("Series", "Agency", "News Release")) |>
     filter(`Release Date` > `Latest Release`) |>
     arrange(Series, `Release Date`)
 
+  latest_reference <- full_schedule |>
+    inner_join(latest_release, by = c("Series", "Agency", "News Release")) |>
+    filter(`Release Date` == `Latest Release`) |>
+    select(
+      Series, Agency, `News Release`,
+      `Latest Reference Period` = `Reference Period`
+    )
+
   release_summary <- latest_release |>
+    left_join(latest_reference, by = c("Series", "Agency", "News Release")) |>
     left_join(
       upcoming_release |>
         group_by(Series, Agency, `News Release`) |>
         summarise(
           `Next Scheduled Release` = min(`Release Date`, na.rm = TRUE),
+          `Next Reference Period` = `Reference Period`[which.min(`Release Date`)],
           `Upcoming Releases` = dplyr::n(),
           .groups = "drop"
         ),
@@ -819,7 +839,9 @@ if (inherits(latest_release, "error") || inherits(upcoming_release, "error")) {
       Agency,
       `News Release`,
       `Latest Release`,
+      `Latest Reference Period`,
       `Next Scheduled Release`,
+      `Next Reference Period`,
       `Upcoming Releases`
     ) |>
     mutate(
@@ -845,7 +867,7 @@ if (inherits(latest_release, "error") || inherits(upcoming_release, "error")) {
     knitr::kable(
       release_summary,
       caption = "Latest Published Release and Next Scheduled Release",
-      align = c("l", "l", "l", "r", "r", "r")
+      align = c("l", "l", "l", "r", "l", "r", "l", "r")
     )
   )
 
@@ -863,7 +885,7 @@ if (inherits(latest_release, "error") || inherits(upcoming_release, "error")) {
 
 ## Data Staleness Monitor
 
-This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. Series whose end date matches the most recent available month are highlighted in green ("Current"); those 1 month behind are in yellow ("Behind"); those 2–5 months behind are in orange ("Delayed"); and those 6 or more months behind (or missing entirely) are in red ("Stale").
+This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. The reference point ("most recent available month") is the latest end date observed across all series in the registry, not each series' own expected release date — so a series flagged as "Behind" simply means it trails the frontier of available data, which may reflect its normal release schedule rather than a true delay. Series whose end date matches that frontier are highlighted in green ("Current"); those 1 month behind are in yellow ("Behind"); those 2–5 months behind are in orange ("Delayed"); and those 6 or more months behind (or missing entirely) are in red ("Stale").
 
 ```{r staleness-monitor}
 # --------------------------------------------------------------------------
