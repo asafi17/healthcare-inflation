@@ -206,51 +206,131 @@ build_summary_plots <- function(series_code, database, label) {
 
 ### PCE Price Index: Healthcare Services
 
+::: {.panel-tabset}
+
+#### Summary Table
+
 ```{r summary-pce}
 pce <- build_summary_table("jcsdm", "USNA", "PCE Healthcare Services")
 knitr::kable(pce$table, caption = pce$label, align = c("l", rep("r", 5)))
 ```
 
-```{r summary-pce-plots}
+#### Price Index Level
+
+```{r summary-pce-level}
 pce_plots <- build_summary_plots("jcsdm", "USNA", "PCE Healthcare Services")
-htmltools::tagList(pce_plots$level, pce_plots$yoy, pce_plots$mom)
+pce_plots$level
 ```
 
+#### YoY
+
+```{r summary-pce-yoy}
+pce_plots$yoy
+```
+
+#### MoM
+
+```{r summary-pce-mom}
+pce_plots$mom
+```
+
+:::
+
 ### CPI: Medical Care Services
+
+::: {.panel-tabset}
+
+#### Summary Table
 
 ```{r summary-cpi}
 cpi <- build_summary_table("UMS", "CPIDATA", "CPI Medical Care Services")
 knitr::kable(cpi$table, caption = cpi$label, align = c("l", rep("r", 5)))
 ```
 
-```{r summary-cpi-plots}
+#### Price Index Level
+
+```{r summary-cpi-level}
 cpi_plots <- build_summary_plots("UMS", "CPIDATA", "CPI Medical Care Services")
-htmltools::tagList(cpi_plots$level, cpi_plots$yoy, cpi_plots$mom)
+cpi_plots$level
 ```
 
+#### YoY
+
+```{r summary-cpi-yoy}
+cpi_plots$yoy
+```
+
+#### MoM
+
+```{r summary-cpi-mom}
+cpi_plots$mom
+```
+
+:::
+
 ### PPI Commodity: Healthcare Services
+
+::: {.panel-tabset}
+
+#### Summary Table
 
 ```{r summary-ppi-commodity}
 ppi_comm <- build_summary_table("P51", "PPI", "PPI Healthcare Services (Commodity)")
 knitr::kable(ppi_comm$table, caption = ppi_comm$label, align = c("l", rep("r", 5)))
 ```
 
-```{r summary-ppi-commodity-plots}
+#### Price Index Level
+
+```{r summary-ppi-commodity-level}
 ppi_comm_plots <- build_summary_plots("P51", "PPI", "PPI Healthcare Services (Commodity)")
-htmltools::tagList(ppi_comm_plots$level, ppi_comm_plots$yoy, ppi_comm_plots$mom)
+ppi_comm_plots$level
 ```
 
+#### YoY
+
+```{r summary-ppi-commodity-yoy}
+ppi_comm_plots$yoy
+```
+
+#### MoM
+
+```{r summary-ppi-commodity-mom}
+ppi_comm_plots$mom
+```
+
+:::
+
 ### PPI Industry: Selected Health Care Industries
+
+::: {.panel-tabset}
+
+#### Summary Table
 
 ```{r summary-ppi-industry}
 ppi_ind <- build_summary_table("RHC", "PPIR", "PPI Selected Health Care Industries")
 knitr::kable(ppi_ind$table, caption = ppi_ind$label, align = c("l", rep("r", 5)))
 ```
 
-```{r summary-ppi-industry-plots}
+#### Price Index Level
+
+```{r summary-ppi-industry-level}
 ppi_ind_plots <- build_summary_plots("RHC", "PPIR", "PPI Selected Health Care Industries")
-htmltools::tagList(ppi_ind_plots$level, ppi_ind_plots$yoy, ppi_ind_plots$mom)
+ppi_ind_plots$level
 ```
+
+#### YoY
+
+```{r summary-ppi-industry-yoy}
+ppi_ind_plots$yoy
+```
+
+#### MoM
+
+```{r summary-ppi-industry-mom}
+ppi_ind_plots$mom
+```
+
+:::
 
 ## Healthcare Services Contribution to Core PCE Inflation
 
