@@ -27,7 +27,8 @@ pacman::p_load(here,
                importhaver,
                Haver,
                readxl,
-               fredr)
+               fredr,
+               plotly)
 
 # set theme
 theme_set(
@@ -151,6 +152,56 @@ build_summary_table <- function(series_code, database, label) {
 
   list(table = tbl, label = paste0(label, " (", series_code, "@", database, ")"))
 }
+
+# --------------------------------------------------------------------------
+# Helper: build three plotly plots (level, YoY, MoM) for a headline series,
+# restricted to the most recent 24 months and overlaying the sample mean.
+# --------------------------------------------------------------------------
+build_summary_plots <- function(series_code, database, label) {
+  full_code <- paste0(series_code, "@", database)
+  d <- import_haver(series = full_code, eop = FALSE)
+  col <- setdiff(names(d), "date")
+  names(d)[names(d) == col[1]] <- "pi"
+
+  d <- d |>
+    arrange(date) |>
+    filter(!is.na(pi)) |>
+    mutate(
+      yoy = (pi / lag(pi, 12) - 1) * 100,
+      mom = (pi / lag(pi, 1) - 1) * 100
+    ) |>
+    slice_tail(n = 24)
+
+  make_plot <- function(y_var, y_label, plot_title) {
+    sample_mean <- mean(d[[y_var]], na.rm = TRUE)
+    mean_label  <- paste0("Sample Mean (", round(sample_mean, 2), ")")
+
+    plotly::plot_ly(d, x = ~date) |>
+      plotly::add_lines(
+        y = ~.data[[y_var]],
+        name = y_label,
+        line = list(color = "#1f77b4", width = 2)
+      ) |>
+      plotly::add_lines(
+        y = rep(sample_mean, nrow(d)),
+        name = mean_label,
+        line = list(color = "red", dash = "dash", width = 1.5)
+      ) |>
+      plotly::layout(
+        title = plot_title,
+        xaxis = list(title = ""),
+        yaxis = list(title = y_label),
+        hovermode = "x unified",
+        legend = list(orientation = "h", x = 0, y = -0.15)
+      )
+  }
+
+  list(
+    level = make_plot("pi",  "Index Level", paste0(label, ": Price Index Level (Last 24 Months)")),
+    yoy   = make_plot("yoy", "YoY (%)",     paste0(label, ": YoY % Change (Last 24 Months)")),
+    mom   = make_plot("mom", "MoM (%)",     paste0(label, ": MoM % Change (Last 24 Months)"))
+  )
+}
 ```
 
 ### PCE Price Index: Healthcare Services
@@ -160,11 +211,21 @@ pce <- build_summary_table("jcsdm", "USNA", "PCE Healthcare Services")
 knitr::kable(pce$table, caption = pce$label, align = c("l", rep("r", 5)))
 ```
 
+```{r summary-pce-plots}
+pce_plots <- build_summary_plots("jcsdm", "USNA", "PCE Healthcare Services")
+htmltools::tagList(pce_plots$level, pce_plots$yoy, pce_plots$mom)
+```
+
 ### CPI: Medical Care Services
 
 ```{r summary-cpi}
 cpi <- build_summary_table("UMS", "CPIDATA", "CPI Medical Care Services")
 knitr::kable(cpi$table, caption = cpi$label, align = c("l", rep("r", 5)))
+```
+
+```{r summary-cpi-plots}
+cpi_plots <- build_summary_plots("UMS", "CPIDATA", "CPI Medical Care Services")
+htmltools::tagList(cpi_plots$level, cpi_plots$yoy, cpi_plots$mom)
 ```
 
 ### PPI Commodity: Healthcare Services
@@ -174,11 +235,21 @@ ppi_comm <- build_summary_table("P51", "PPI", "PPI Healthcare Services (Commodit
 knitr::kable(ppi_comm$table, caption = ppi_comm$label, align = c("l", rep("r", 5)))
 ```
 
+```{r summary-ppi-commodity-plots}
+ppi_comm_plots <- build_summary_plots("P51", "PPI", "PPI Healthcare Services (Commodity)")
+htmltools::tagList(ppi_comm_plots$level, ppi_comm_plots$yoy, ppi_comm_plots$mom)
+```
+
 ### PPI Industry: Selected Health Care Industries
 
 ```{r summary-ppi-industry}
 ppi_ind <- build_summary_table("RHC", "PPIR", "PPI Selected Health Care Industries")
 knitr::kable(ppi_ind$table, caption = ppi_ind$label, align = c("l", rep("r", 5)))
+```
+
+```{r summary-ppi-industry-plots}
+ppi_ind_plots <- build_summary_plots("RHC", "PPIR", "PPI Selected Health Care Industries")
+htmltools::tagList(ppi_ind_plots$level, ppi_ind_plots$yoy, ppi_ind_plots$mom)
 ```
 
 ## Healthcare Services Contribution to Core PCE Inflation
@@ -549,7 +620,7 @@ knitr::kable(
 
 ## Healthcare Sub-Component Price Indices
 
-This section tracks price indices for key healthcare sub-components using PPI industry-based series and CPI dental services. Each row reports the most recent available price index level, month-over-month (MoM) change, and year-over-year (YoY) change, along with the component's expenditure weight (share of total PCE healthcare services spending). The three right-most columns all exclude the current month $t$ and use the trailing window ending at $t-1$: a trailing 12-month change ($P_{t-1}/P_{t-13}$), the average of the 12 monthly changes from $t-12$ to $t-1$, and the average of the 12 year-over-year changes from $t-12$ to $t-1$.
+This section tracks price indices for key healthcare sub-components using PPI industry-based series and CPI dental services. Each row reports the most recent available price index level, month-over-month (MoM) change, and year-over-year (YoY) change, along with the component's expenditure weight (share of total PCE healthcare services spending). The two right-most columns both exclude the current month $t$ and use the trailing window ending at $t-1$: the average of the 12 monthly changes from $t-12$ to $t-1$, and the average of the 12 year-over-year changes from $t-12$ to $t-1$.
 
 BEA uses these PPI and CPI prices as inputs to construct PCE healthcare sub-component price indices, so we pair each price series with its corresponding PCE nominal expenditure to compute weights. For dental services, BEA uses the CPI dental price in an intermediate step to derive the PCE dental price index, which is why we use PCE dental expenditures as the weight.
 
@@ -569,10 +640,6 @@ $$
 $$
 
 The appended trailing columns are:
-
-$$
-\text{Trailing 12-Mo Change}_t = \left(\frac{P_{t-1}}{P_{t-13}} - 1\right) \times 100
-$$
 
 $$
 \text{Avg MoM, Last 12}_t = \frac{1}{12}\sum_{j=1}^{12}\left(\frac{P_{t-j}}{P_{t-j-1}} - 1\right)\times 100
@@ -622,8 +689,7 @@ build_subcomp_row <- function(label, pi_code, pi_db, ne_code, ne_db) {
     filter(!is.na(pi)) |>
     mutate(
       yoy = (pi / lag(pi, 12) - 1) * 100,
-      mom = (pi / lag(pi, 1) - 1) * 100,
-      trailing_12_change = (lag(pi, 1) / lag(pi, 13) - 1) * 100
+      mom = (pi / lag(pi, 1) - 1) * 100
     )
 
   # Pull expenditure weight
@@ -664,7 +730,6 @@ build_subcomp_row <- function(label, pi_code, pi_db, ne_code, ne_db) {
     `PI Level`    = round(latest_pi$pi, 2),
     `MoM (%)`     = round(latest_pi$mom, 2),
     `YoY (%)`     = round(latest_pi$yoy, 2),
-    `Trailing 12-Mo Change (%)` = round(latest_pi$trailing_12_change, 2),
     `Avg MoM, Last 12 (%)` = round(mean(recent_mom$mom, na.rm = TRUE), 2),
     `Avg YoY, Last 12 (%)` = round(mean(recent_yoy$yoy, na.rm = TRUE), 2),
     check.names   = FALSE
@@ -676,7 +741,7 @@ subcomp_tbl <- purrr::pmap_dfr(subcomp_specs, build_subcomp_row)
 knitr::kable(
   subcomp_tbl,
   caption = "Healthcare Sub-Component Price Indices with PCE Expenditure Weights",
-  align = c("l", "l", rep("r", 7))
+  align = c("l", "l", rep("r", 6))
 )
 ```
 
