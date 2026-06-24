@@ -1019,9 +1019,23 @@ if (inherits(latest_release, "error") || inherits(upcoming_release, "error")) {
 
 ## Data Staleness Monitor
 
-This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. The reference point ("most recent available month") is the latest end date observed across all series in the registry, not each series' own expected release date — so a series flagged as "Behind" simply means it trails the frontier of available data, which may reflect its normal release schedule rather than a true delay. Series whose end date matches that frontier are highlighted in green ("Current"); those 1 month behind are in yellow ("Behind"); those 2–5 months behind are in orange ("Delayed"); and those 6 or more months behind (or missing entirely) are in red ("Stale").
+This section checks, for every Haver series used across the project's PCE, PPI, and CPI code, how current the data is and whether any recent observations are missing.
 
-For each series, "Last Haver Date" is the final date returned by Haver, while "Last Observed Date" is the most recent date with a non-missing value. The staleness status is based on the last observed date. The "NA Share, Last 12 Obs (%)" column reports the percent of the most recent 12 returned observations that are missing.
+Each series is pulled on its own. Within that pull, **t** is the most recent date Haver returns for the series. The "last 12 observations" used below are the 12 most recent months in that pull — the months **t−11 through t**. Every missing-data measure is anchored to this per-series window: it is judged against the series' own most recent Haver date, not against a shared calendar date or against the other series.
+
+The table reports:
+
+- **Source** — the data program the series belongs to (PCE, PPI, or CPI).
+- **Code** — the Haver series mnemonic.
+- **Database** — the Haver database the series is pulled from.
+- **Description** — a plain-language description of the series.
+- **Most Recent Haver Date** — the final date returned by the Haver pull (t), whether or not that date's value is missing.
+- **Last Non-Missing Date** — the most recent date in the pull that has an actual (non-missing) value.
+- **% Missing, Last 12 Obs** — the share of the 12 most recent observations (t−11 through t) whose value is missing.
+- **Missing Dates, Last 12 Obs** — the specific months within that 12-observation window that are missing (blank if none are missing).
+- **Used for PCE** — "Yes" if BEA uses the series as an input when constructing the PCE healthcare price indices, otherwise "No".
+
+When the most recent Haver date is later than the last non-missing date, the series is returning empty (missing) values at the end of its pull. Rows are shaded by how far the last non-missing date trails the most recent month observed across all series in the table: green ("Current") matches that frontier, yellow ("Behind") is 1 month back, orange ("Delayed") is 2–5 months back, and red ("Stale") is 6 or more months back or missing entirely.
 
 ```{r staleness-monitor}
 # --------------------------------------------------------------------------
@@ -1170,23 +1184,47 @@ get_series_status <- function(code, db) {
       mean(is.na(recent_12[[col[1]]])) * 100
     }
 
+    # Dates among the most recent 12 returned observations whose value is missing
+    missing_dates_last_12 <- if (nrow(recent_12) == 0) {
+      NA_character_
+    } else {
+      miss <- recent_12$date[is.na(recent_12[[col[1]]])]
+      if (length(miss) == 0) {
+        ""
+      } else {
+        paste(format(miss, "%b %Y"), collapse = ", ")
+      }
+    }
+
     tibble(
       last_haver_date = last_haver_date,
       last_observed_date = last_observed_date,
-      pct_na_last_12 = pct_na_last_12
+      pct_na_last_12 = pct_na_last_12,
+      missing_dates_last_12 = missing_dates_last_12
     )
   }, error = function(e) {
     tibble(
       last_haver_date = as.Date(NA),
       last_observed_date = as.Date(NA),
-      pct_na_last_12 = NA_real_
+      pct_na_last_12 = NA_real_,
+      missing_dates_last_12 = NA_character_
     )
   })
 }
 
+# Series BEA uses as inputs when constructing the PCE healthcare price indices
+pce_release_series <- c(
+  "R6211@PPIR", "R6216@PPIR", "R6215@PPIR", "R622@PPIR", "R6231@PPIR",
+  "UMSPT@CPIDATA", "UMSPTN@CPIDATA", "UMSPS@CPIDATA", "UMSPSN@CPIDATA"
+)
+
 staleness <- series_registry |>
   mutate(
-    series_status = purrr::map2(series_code, database, get_series_status)
+    series_status = purrr::map2(series_code, database, get_series_status),
+    in_pce_release = ifelse(
+      paste0(series_code, "@", database) %in% pce_release_series,
+      "Yes", "No"
+    )
   ) |>
   tidyr::unnest(series_status)
 
@@ -1214,7 +1252,10 @@ staleness <- staleness |>
 # Single color-coded table for all series
 # --------------------------------------------------------------------------
 staleness_display <- staleness |>
-  mutate(`NA Share, Last 12 Obs (%)` = round(pct_na_last_12, 1)) |>
+  mutate(
+    `NA Share, Last 12 Obs (%)` = round(pct_na_last_12, 1),
+    `Missing Dates, Last 12 Obs` = missing_dates_last_12
+  ) |>
   select(
     source_group,
     series_code,
@@ -1223,6 +1264,8 @@ staleness_display <- staleness |>
     last_haver_date,
     last_observed_date,
     `NA Share, Last 12 Obs (%)`,
+    `Missing Dates, Last 12 Obs`,
+    in_pce_release,
     status
   ) |>
   arrange(status, source_group, series_code)
@@ -1238,9 +1281,11 @@ DT::datatable(
     "Code",
     "Database",
     "Description",
-    "Last Haver Date",
-    "Last Observed Date",
-    "NA Share, Last 12 Obs (%)",
+    "Most Recent Haver Date",
+    "Last Non-Missing Date",
+    "% Missing, Last 12 Obs",
+    "Missing Dates, Last 12 Obs",
+    "Used for PCE",
     "Status"
   ),
   rownames = FALSE,
