@@ -1021,6 +1021,8 @@ if (inherits(latest_release, "error") || inherits(upcoming_release, "error")) {
 
 This section checks the last available date for every Haver series used across the project's PCE, PPI, and CPI code. The reference point ("most recent available month") is the latest end date observed across all series in the registry, not each series' own expected release date — so a series flagged as "Behind" simply means it trails the frontier of available data, which may reflect its normal release schedule rather than a true delay. Series whose end date matches that frontier are highlighted in green ("Current"); those 1 month behind are in yellow ("Behind"); those 2–5 months behind are in orange ("Delayed"); and those 6 or more months behind (or missing entirely) are in red ("Stale").
 
+For each series, the end date is the most recent date with a non-missing value, not necessarily the final row returned by Haver. The "NA Share, Last 12 Obs (%)" column reports the percent of the most recent 12 returned observations that are missing.
+
 ```{r staleness-monitor}
 # --------------------------------------------------------------------------
 # Define all Haver series used across the project, grouped by source
@@ -1137,24 +1139,48 @@ series_registry <- tribble(
 )
 
 # --------------------------------------------------------------------------
-# Pull each series and extract the last non-NA date
+# Pull each series, extract the last non-NA date, and compute the share of
+# missing values in the most recent 12 observations.
 # --------------------------------------------------------------------------
-get_end_date <- function(code, db) {
+get_series_status <- function(code, db) {
   full_code <- paste0(code, "@", db)
   tryCatch({
-    d <- import_haver(series = full_code, eop = FALSE) |>
-      na.omit()
+    d <- import_haver(series = full_code, eop = FALSE)
     col <- setdiff(names(d), "date")
-    d <- d |> filter(!is.na(.data[[col[1]]]))
-    if (nrow(d) == 0) return(as.Date(NA))
-    max(d$date)
-  }, error = function(e) as.Date(NA))
+    d <- d |>
+      arrange(date)
+
+    d_nonmissing <- d |> filter(!is.na(.data[[col[1]]]))
+    end_date <- if (nrow(d_nonmissing) == 0) {
+      as.Date(NA)
+    } else {
+      max(d_nonmissing$date)
+    }
+
+    recent_12 <- d |> slice_tail(n = 12)
+    pct_na_last_12 <- if (nrow(recent_12) == 0) {
+      NA_real_
+    } else {
+      mean(is.na(recent_12[[col[1]]])) * 100
+    }
+
+    tibble(
+      end_date = end_date,
+      pct_na_last_12 = pct_na_last_12
+    )
+  }, error = function(e) {
+    tibble(
+      end_date = as.Date(NA),
+      pct_na_last_12 = NA_real_
+    )
+  })
 }
 
 staleness <- series_registry |>
-  rowwise() |>
-  mutate(end_date = get_end_date(series_code, database)) |>
-  ungroup()
+  mutate(
+    series_status = purrr::map2(series_code, database, get_series_status)
+  ) |>
+  tidyr::unnest(series_status)
 
 # --------------------------------------------------------------------------
 # Determine the most recent end date and flag stale series
@@ -1180,7 +1206,16 @@ staleness <- staleness |>
 # Single color-coded table for all series
 # --------------------------------------------------------------------------
 staleness_display <- staleness |>
-  select(source_group, series_code, database, description, end_date, status) |>
+  mutate(`NA Share, Last 12 Obs (%)` = round(pct_na_last_12, 1)) |>
+  select(
+    source_group,
+    series_code,
+    database,
+    description,
+    end_date,
+    `NA Share, Last 12 Obs (%)`,
+    status
+  ) |>
   arrange(status, source_group, series_code)
 
 DT::datatable(
@@ -1189,7 +1224,15 @@ DT::datatable(
     "Series Staleness Monitor (most recent: ",
     format(most_recent, "%B %Y"), ")"
   ),
-  colnames = c("Source", "Code", "Database", "Description", "End Date", "Status"),
+  colnames = c(
+    "Source",
+    "Code",
+    "Database",
+    "Description",
+    "End Date",
+    "NA Share, Last 12 Obs (%)",
+    "Status"
+  ),
   rownames = FALSE,
   extensions = 'Buttons',
   options = list(
