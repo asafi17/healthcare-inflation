@@ -1291,7 +1291,8 @@ DT::datatable(
   rownames = FALSE,
   extensions = 'Buttons',
   options = list(
-    scrollY = T,
+    scrollX = TRUE,
+    scrollY = TRUE,
     dom = 'Blfrtip',
     buttons = c('copy', 'csv', 'excel'),
     pageLength = 10,
