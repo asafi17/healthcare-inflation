@@ -56,18 +56,14 @@ This section tracks headline healthcare services price indices from three major 
 
 For a given price index $P_t$, the measures are computed as:
 
-$$
-\text{YoY}_t = \left(\frac{P_t}{P_{t-12}} - 1\right) \times 100
-$$
+$$\text{YoY}_t = \left(\frac{P_t}{P_{t-12}} - 1\right) \times 100$$
 
-$$
-\text{MoM}_t = \left(\frac{P_t}{P_{t-1}} - 1\right) \times 100
-$$
+$$\text{MoM}_t = \left(\frac{P_t}{P_{t-1}} - 1\right) \times 100$$
 
 The four headline series are:
 
 | Source | Haver Code | Description |
-|------------------|--------------------------|----------------------------|
+|------------------------|------------------------|------------------------|
 | PCE Price Index | `jcsdm@USNA` | Healthcare Services PCE Price Index (SA) |
 | CPI | `UMS@CPIDATA` | CPI-U Medical Care Services (SA) |
 | PPI Commodity | `P51@PPI` | PPI Healthcare Services, Commodity-Based (NSA) |
@@ -206,8 +202,7 @@ build_summary_plots <- function(series_code, database, label) {
 
 ### PCE Price Index: Healthcare Services
 
-::: {.panel-tabset}
-
+::: panel-tabset
 #### Summary Table
 
 ```{r summary-pce}
@@ -233,13 +228,11 @@ pce_plots$yoy
 ```{r summary-pce-mom}
 pce_plots$mom
 ```
-
 :::
 
 ### CPI: Medical Care Services
 
-::: {.panel-tabset}
-
+::: panel-tabset
 #### Summary Table
 
 ```{r summary-cpi}
@@ -265,13 +258,11 @@ cpi_plots$yoy
 ```{r summary-cpi-mom}
 cpi_plots$mom
 ```
-
 :::
 
 ### PPI Commodity: Healthcare Services
 
-::: {.panel-tabset}
-
+::: panel-tabset
 #### Summary Table
 
 ```{r summary-ppi-commodity}
@@ -297,13 +288,11 @@ ppi_comm_plots$yoy
 ```{r summary-ppi-commodity-mom}
 ppi_comm_plots$mom
 ```
-
 :::
 
 ### PPI Industry: Selected Health Care Industries
 
-::: {.panel-tabset}
-
+::: panel-tabset
 #### Summary Table
 
 ```{r summary-ppi-industry}
@@ -329,7 +318,6 @@ ppi_ind_plots$yoy
 ```{r summary-ppi-industry-mom}
 ppi_ind_plots$mom
 ```
-
 :::
 
 ## Healthcare Services Contribution to Core PCE Inflation
@@ -339,7 +327,7 @@ This section measures how much of Core PCE inflation is attributable to healthca
 Core PCE excludes food and energy and can be decomposed into three mutually exclusive components:
 
 | Component | Haver NE Code | Haver PI Code | Description |
-|-----------------|-------------------|-------------------|-----------------|
+|------------------|------------------|------------------|------------------|
 | Goods ex Food & Energy | `cgxfem@USNA` | `jcgxfem@USNA` | Core goods (excluding food and energy) |
 | Services ex Energy & Healthcare | `csxhem@USNA` | `jcsxhem@USNA` | Core services (excluding energy and healthcare) |
 | Healthcare Services | `csdm@USNA` | `jcsdm@USNA` | PCE healthcare services |
@@ -347,33 +335,23 @@ Core PCE excludes food and energy and can be decomposed into three mutually excl
 
 For each component $i$, we first compute the **YoY inflation rate** from its price index $P_{i,t}$:
 
-$$
-\pi_{i,t} = \left(\frac{P_{i,t}}{P_{i,t-12}} - 1\right) \times 100
-$$
+$$\pi_{i,t} = \left(\frac{P_{i,t}}{P_{i,t-12}} - 1\right) \times 100$$
 
 Next, we compute each component's **expenditure share** of Core PCE using nominal expenditures ($NE$):
 
-$$
-w_{i,t} = \frac{NE_{i,t}}{NE_{core,t}}
-$$
+$$w_{i,t} = \frac{NE_{i,t}}{NE_{core,t}}$$
 
 Each component's **contribution** to Core PCE inflation (in percentage points) is the product of its share and its inflation rate:
 
-$$
-C_{i,t} = w_{i,t} \times \pi_{i,t}
-$$
+$$C_{i,t} = w_{i,t} \times \pi_{i,t}$$
 
 **Estimated Core PCE inflation** is the sum of all component contributions:
 
-$$
-\hat{\pi}_{core,t} = C_{goodxfe,t} + C_{servxeh,t} + C_{hcserv,t}
-$$
+$$\hat{\pi}_{core,t} = C_{goodxfe,t} + C_{servxeh,t} + C_{hcserv,t}$$
 
 Finally, **healthcare's share of Core PCE inflation** expresses healthcare's contribution as a percentage of the total:
 
-$$
-S_{hcserv,t} = \frac{C_{hcserv,t}}{\hat{\pi}_{core,t}} \times 100
-$$
+$$S_{hcserv,t} = \frac{C_{hcserv,t}}{\hat{\pi}_{core,t}} \times 100$$
 
 ```{r core-pce-contribution}
 # --------------------------------------------------------------------------
@@ -546,7 +524,7 @@ This section measures how much of Core CPI inflation is attributable to medical 
 Core CPI (All Items Less Food & Energy) includes medical care services as a sub-component. We measure medical care services' contribution using BLS relative importance weights, which reflect each component's expenditure share of the total index.
 
 | Series | Haver Code | Description |
-|--------|-----------|-------------|
+|------------------------|------------------------|------------------------|
 | Core CPI Price Index | `UIXFDG@CPIDATA` | CPI-U All Items Less Food & Energy (SA) |
 | Medical Care Services Price Index | `UMS@CPIDATA` | CPI-U Medical Care Services (SA) |
 | Medical Care Services RI Weight | `RPCUMS@CPIDATA` | Relative importance weight, Medical Care Services |
@@ -554,21 +532,15 @@ Core CPI (All Items Less Food & Energy) includes medical care services as a sub-
 
 For each price index $P_t$, we compute year-over-year inflation:
 
-$$
-\pi_t = \left(\frac{P_t}{P_{t-12}} - 1\right) \times 100
-$$
+$$\pi_t = \left(\frac{P_t}{P_{t-12}} - 1\right) \times 100$$
 
 Medical care services' weight within Core CPI is obtained by rescaling the BLS relative importance weights (which are shares of All Items CPI) to shares of Core CPI:
 
-$$
-w_{ms,t} = \frac{RI^{ms}_t}{RI^{core}_t}
-$$
+$$w_{ms,t} = \frac{RI^{ms}_t}{RI^{core}_t}$$
 
 The contribution (in percentage points) and share of Core CPI inflation are:
 
-$$
-C_{ms,t} = w_{ms,t} \times \pi_{ms,t}, \qquad S_{ms,t} = \frac{C_{ms,t}}{\pi_{core,t}} \times 100
-$$
+$$C_{ms,t} = w_{ms,t} \times \pi_{ms,t}, \qquad S_{ms,t} = \frac{C_{ms,t}}{\pi_{core,t}} \times 100$$
 
 ```{r core-cpi-contribution}
 # --------------------------------------------------------------------------
@@ -705,7 +677,7 @@ This section tracks price indices for key healthcare sub-components using PPI in
 BEA uses these PPI and CPI prices as inputs to construct PCE healthcare sub-component price indices, so we pair each price series with its corresponding PCE nominal expenditure to compute weights. For dental services, BEA uses the CPI dental price in an intermediate step to derive the PCE dental price index, which is why we use PCE dental expenditures as the weight.
 
 | Component | Price Index Code | Expenditure Weight Code | Description |
-|-----------|-----------------|------------------------|-------------|
+|------------------|------------------|------------------|------------------|
 | Physicians | `R6211@PPIR` | `CSMPM@USNA` | PPI Offices of Physicians |
 | Home Health | `R6216@PPIR` | `CSMOAM@USNA` | PPI Home Health Care Services |
 | Medical & Diagnostic Labs | `R6215@PPIR` | `CSMOLM@USNA` | PPI Medical & Diagnostic Labs |
@@ -715,25 +687,17 @@ BEA uses these PPI and CPI prices as inputs to construct PCE healthcare sub-comp
 
 For a given price index $P_t$:
 
-$$
-\text{YoY}_t = \left(\frac{P_t}{P_{t-12}} - 1\right) \times 100, \qquad \text{MoM}_t = \left(\frac{P_t}{P_{t-1}} - 1\right) \times 100
-$$
+$$\text{YoY}_t = \left(\frac{P_t}{P_{t-12}} - 1\right) \times 100, \qquad \text{MoM}_t = \left(\frac{P_t}{P_{t-1}} - 1\right) \times 100$$
 
 The appended trailing columns are:
 
-$$
-\text{Avg MoM, Last 12}_t = \frac{1}{12}\sum_{j=1}^{12}\left(\frac{P_{t-j}}{P_{t-j-1}} - 1\right)\times 100
-$$
+$$\text{Avg MoM, Last 12}_t = \frac{1}{12}\sum_{j=1}^{12}\left(\frac{P_{t-j}}{P_{t-j-1}} - 1\right)\times 100$$
 
-$$
-\text{Avg YoY, Last 12}_t = \frac{1}{12}\sum_{j=1}^{12}\text{YoY}_{t-j}
-$$
+$$\text{Avg YoY, Last 12}_t = \frac{1}{12}\sum_{j=1}^{12}\text{YoY}_{t-j}$$
 
 Expenditure weights are each component's share of total healthcare services nominal expenditure:
 
-$$
-w_{i,t} = \frac{NE_{i,t}}{NE_{hcserv,t}} \times 100
-$$
+$$w_{i,t} = \frac{NE_{i,t}}{NE_{hcserv,t}} \times 100$$
 
 ```{r hc-subcomponents}
 # --------------------------------------------------------------------------
@@ -1075,13 +1039,13 @@ series_registry <- tribble(
   "csmpm",        "USNA",      "PCE",         "Healthcare Services: Physician Services NE",
   "csmdm",        "USNA",      "PCE",         "Healthcare Services: Dental Services NE",
   "csmom",        "USNA",      "PCE",         "Healthcare Services: Paramedical Services NE",
-  "csmnm",        "USNA",      "PCE",         "Healthcare Services: Paramedical: Home Health Care NE",
+  "csmnm",        "USNA",      "PCE",         "Healthcare Services: Hospital and Nursing Home Services NE",
   "csmolm",       "USNA",      "PCE",         "Healthcare Services: Paramedical: Medical Laboratories NE",
   "csmoom",       "USNA",      "PCE",         "Healthcare Services: Paramedical: Other Professional Medical Services NE",
   "csmhpm",       "USNA",      "PCE",         "Healthcare Services: Hospital Services NE",
   "csmhnm",       "USNA",      "PCE",         "Healthcare Services: Nursing Homes NE",
   "ctgm",         "USNA",      "PCE",         "Total Goods NE",
-  "csmoa",        "USNA",      "PCE",         "Healthcare Services: Paramedical Services",
+  # "csmoa",        "USNA",      "PCE",         "Healthcare Services: Paramedical Services", # last published value was as of 2025-01-01
   "csmoam",       "USNA",      "PCE",         "Healthcare Services: Paramedical: Home Health Care NE (monthly)",
 
   # --- PCE Price Indices (USNA) --- (seasonally adjusted= SA)
@@ -1095,7 +1059,7 @@ series_registry <- tribble(
   "jcsmpm",       "USNA",      "PCE",         "Physician Services PCE PI",
   "jcsmdm",       "USNA",      "PCE",         "Dental Services PCE PI",
   "jcsmom",       "USNA",      "PCE",         "Paramedical Services PCE PI",
-  "jcsmnm",       "USNA",      "PCE",         "Home & Nursing PCE PI",
+  "jcsmnm",       "USNA",      "PCE",         "Hospital & Nursing PCE PI",
   "jcsmhpm",      "USNA",      "PCE",         "Hospital Services PCE PI",
   "jcsmhnm",      "USNA",      "PCE",         "Nursing Homes PCE PI",
   "jctgm",        "USNA",      "PCE",         "Total Goods PCE PI",
